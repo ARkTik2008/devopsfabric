@@ -3,32 +3,32 @@
 # A script that creates users.
 # Usage: sudo ./user_add.sh <login> <password_hash> <Name> <Surname>
 
+set -e
+user=$1
+passwd_hash=$2
+user_name=$3
+user_surname=$4
+
 # Checking number of arguments, script should contain 4
-if [ $# -eq 4 ]; then
-USER=$1
-PASSWD_HASH=$2
-USER_NAME=$3
-USER_SURNAME=$4
+if [ $# -ne 4 ]; then
+    echo "The script needs 4 arguments, but you had given $#"
+    echo "Usage: sudo ./user_add.sh <login> <password_hash> <Name> <Surname>"
+    exit 1
+fi
 
 # Checking for user exists
-grep -q "$USER" /etc/passwd
-if [ $? -eq 0 ]; then
-  echo "User $USER already exists"
-  echo "Please choose another login"
-  exit 1
+if grep -q "$user" /etc/passwd; then
+    echo "User $user already exists"
+    echo "Please choose another login"
+    exit 1
 fi
 
 # Adding user
-useradd -m -d /home/"$USER" -p "$PASSWD_HASH" \
-  -c "$USER_NAME $USER_SURNAME" -s /bin/bash "$USER"
-mkdir /home/"$USER"/.ssh
-touch /home/"$USER"/.ssh/authorized_keys
-echo "$SSHPUBKEY" >> /home/"$USER"/.ssh/authorized_keys
-chmod -R 700 /home/"$USER"/.ssh
-chmod -R 600 /home/"$USER"/.ssh/authorized_keys
-chown -R "$USER":"$USER" /home/"$USER"/.ssh
-
-else
-  echo "The script needs 4 arguments, but you had given $#"
-  echo "Usage: sudo ./user_add.sh <login> <password_hash> <Name> <Surname>"
-fi
+useradd -m -d /home/"$user" -p "$passwd_hash" \
+    -c "$user_name $user_surname" -s /bin/bash "$user"
+mkdir /home/"$user"/.ssh
+touch /home/"$user"/.ssh/authorized_keys
+echo "$SSHPUBKEY" >> /home/"$user"/.ssh/authorized_keys
+chmod -R 700 /home/"$user"/.ssh
+chmod -R 600 /home/"$user"/.ssh/authorized_keys
+chown -R "$user":"$user" /home/"$user"/.ssh

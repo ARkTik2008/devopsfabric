@@ -36,3 +36,22 @@ git commit -m "DEVOPS-005 added DEVOPS-005/gitenv.md"
  1 file changed, 24 insertions(+)
  create mode 100644 DEVOPS-005/gitenv.md
 ```
+
+Setting up the name and email of the author from environment variables for **Snoop Dogg**:
+```bash
+export GIT_AUTHOR_NAME="Snoop Dogg"
+export GIT_AUTHOR_EMAIL="sdogg@ubuntu"
+export GIT_COMMITTER_NAME="Snoop Dogg"
+export GIT_COMMITTER_EMAIL="sdogg@ubuntu"
+```
+
+And then we can check them by typing
+```bash
+env | grep GIT_
+GIT_COMMITTER_NAME=Snoop Dogg
+GIT_AUTHOR_EMAIL=sdogg@ubuntu
+GIT_COMMITTER_EMAIL=sdogg@ubuntu
+GIT_AUTHOR_NAME=Snoop Dogg
+```
+
+All done.

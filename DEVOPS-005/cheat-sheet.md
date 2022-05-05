@@ -10,3 +10,9 @@
 9. git checkout .
 10. git reset --hard HEAD~1
 11. git rebase --interactive
+
+# Some useful vim commands:
+1. :q!
+2. :wq
+2. p
+

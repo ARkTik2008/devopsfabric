@@ -6,11 +6,13 @@
 
 set -e
 
-if ! [ -d files ]
-  then mkdir files
+file_dir="files"
+
+if ! [ -d "$file_dir" ]
+  then mkdir "$file_dir"
 fi
 
-cd files
+cd "$file_dir"
 count=0
 while [ $count -lt 1024 ]; do
   filename=$(cat "/dev/urandom" | tr -cd 'a-fA-Z0-9' \

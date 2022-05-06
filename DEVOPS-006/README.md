@@ -29,7 +29,7 @@ value of %id (52.4). This indicates that the system load is small, the performan
 ---
 
 **Screenshot of running tmux session** (backup script is running)
-![file generating script is running](/DEVOPS-006/file-gen.png)
+![file generating script is running](/DEVOPS-006/backup.png)
 
 When we run the backup script 'backup.sh', we can see greater increase in values 
 of 1 minute LA (0,34), %us (25.6), %sy (4.8), %wa (6.1) and decrease of the value of %id (56.3).

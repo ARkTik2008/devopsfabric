@@ -14,7 +14,7 @@ if [[ "$(id -u)" != "0" ]];then
 fi
 
 # Installing prerequisites
-apt install -y curl gnupg2 ca-certificates lsb-release ubuntu-keyring
+apt update && apt install -y curl gnupg2 ca-certificates lsb-release ubuntu-keyring
 
 # Importing an official nginx signing key
 curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor \
@@ -30,6 +30,7 @@ echo -e "Package: *\nPin: origin nginx.org\nPin: release o=nginx\nPin-Priority: 
   | tee /etc/apt/preferences.d/99nginx
 
 apt update
-apt install nginx=1.20.1*
+apt install -y nginx=1.20.1*
 systemctl start nginx
-systemctl status nginx
+systemctl enable nginx
+#systemctl status nginx

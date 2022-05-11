@@ -14,7 +14,8 @@ if [[ "$(id -u)" != "0" ]];then
 fi
 
 # Installing prerequisites
-apt update && apt install -y curl gnupg2 ca-certificates lsb-release ubuntu-keyring
+apt update
+apt install -y curl gnupg2 ca-certificates lsb-release ubuntu-keyring
 
 # Importing an official nginx signing key
 curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor \

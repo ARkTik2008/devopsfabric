@@ -1,7 +1,7 @@
 # DEVOPS-010 basic nginx configuration
 
-### 1. validating default server by IP
-**`curl -Ik 192.168.88.111`**
+### 1. validating default server by local IP
+**`curl -Ik 192.168.88.111:80`**
 
 ```
 HTTP/1.1 403 Forbidden
@@ -13,7 +13,7 @@ Connection: keep-alive
 ```
 
 
-### 2. validating default server by local IP
+### 2. validating default server by loopback IP
 **`curl -Ik http://127.0.0.1:80`**
 
 ```
@@ -94,6 +94,23 @@ Content-Type: text/html
 Content-Length: 145
 Connection: keep-alive
 Location: https://fabric.baikalteam.com/
+```
+
+
+### 7. validating non-existent URI
+**`curl -Ik http://main.fabric/hello`**
+```
+curl: (6) Could not resolve host: main.fabric
+```
+
+**`curl -Ik --resolve main.fabric:80:192.168.88.111 http://main.fabric/hello`**
+```
+HTTP/1.1 404 Not Found
+Server: nginx/1.20.1
+Date: Fri, 13 May 2022 09:13:29 GMT
+Content-Type: text/html
+Content-Length: 153
+Connection: keep-alive
 ```
 
 

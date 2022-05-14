@@ -314,8 +314,8 @@ server {
 
 ## Screenshots
 
-![NGINX vhost proxy_pass IP](DEVOPS-011/IP+proxy.png)
+![NGINX vhost proxy_pass IP](/DEVOPS-011/IP+proxy.png)
 
-![NGINX vhost proxy_pass Domain](DEVOPS-011/domain+proxy.png)
+![NGINX vhost proxy_pass Domain](/DEVOPS-011/domain+proxy.png)
 
-![TMUX session](DEVOPS-011/tmux.png)
+![TMUX session](/DEVOPS-011/tmux.png)

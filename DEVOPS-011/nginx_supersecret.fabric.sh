@@ -38,6 +38,12 @@ cp --force auth.basic /etc/nginx/
 # attaching or starting tmux session with python3 webserver
 mkdir -p /var/www/supersecret.fabric/html/proxy/
 cp --force hello.html /var/www/supersecret.fabric/html/proxy/
-tmux attach -t python-server \
-  || tmux new-session -d -s python-server "python3 -m http.server 8000" \
-  && tmux attach -t python-server
+cd /var/www/supersecret.fabric/html/
+
+# Tmux sets the TMUX environment variable in tmux session
+if [ -z "$TMUX" ]; then
+  tmux new-session -d -s python-server "python3 -m http.server 8000"
+  tmux attach -t python-server
+else
+  tmux attach -t python-server
+fi

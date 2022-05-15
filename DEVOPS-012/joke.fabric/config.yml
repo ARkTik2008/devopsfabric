@@ -1,0 +1,5 @@
+baseURL: http://main.fabric/helloworld
+#languageCode: en-us
+languageCode: ru-ru
+title: "Hugo game play"
+theme: "PaperMod"

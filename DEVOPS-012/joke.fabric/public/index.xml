@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Hugo game play</title>
+    <link>http://main.fabric/helloworld/</link>
+    <description>Recent content on Hugo game play</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ru-ru</language>
+    <lastBuildDate>Sun, 15 May 2022 14:48:03 +0000</lastBuildDate><atom:link href="http://main.fabric/helloworld/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Chuck Norris</title>
+      <link>http://main.fabric/helloworld/posts/chuck-norris/</link>
+      <pubDate>Sun, 15 May 2022 14:48:03 +0000</pubDate>
+      
+      <guid>http://main.fabric/helloworld/posts/chuck-norris/</guid>
+      <description>Чак Норрис и код  Все массивы Чак Норрис объявляет бесконечными, потому что Чак Норрис не знает границ Чак Норрис пишет код который оптимизирует себя сам Чак Норрис не может тестировать на равенство потому что он не имеет себе равных Первая программа Чака Норриса была kill -9 MySpace на самом деле это не ваше пространство &amp;lsquo;space&amp;rsquo;, это пространство Чака (просто он дает вам пользоваться им) Чак Норрис может написать функцию бесконечной рекурсии и получить ее результат Чак Норрис может решить задачу Башен Ханоя за один ход Чак Норрис прошел до конца World of Warcraft «У меня это работает» всегда справедливо для Чака Норриса Чак Норрис может удалить Корзину Борода Чака Норриса может печатать 140 слов в минуту Чак Норрис может тестировать все приложение всего одним ассертом (одной проверкой) У клавиатуры Чака нет клавишы Ctrl потому что ничто его не может контролировать.</description>
+    </item>
+    
+  </channel>
+</rss>

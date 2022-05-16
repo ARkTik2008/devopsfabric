@@ -84,9 +84,8 @@ vi chuck-norris.md
 hugo server -D
 ```
 
-9. #### building static page localy and in site directory
+9. #### building static page in site directory
 ```
-hugo -D 
 hugo --destination /var/www/main.fabric/html/helloworld/
 ```
 

@@ -18,7 +18,7 @@ fi
 
 # saving existing iptables rules
 mkdir -p /etc/iptables-conf
-iptables-save -f /etc/iptables-conf/iptables_rules.backup
+iptables-save -f /etc/iptables-conf/iptables.backup.`date +%Y%m%d_%H-%M`
 
 # reseting old iptables rules
 iptables -F

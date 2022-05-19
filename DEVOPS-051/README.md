@@ -10,6 +10,15 @@
 ---
 ####
 
+## Set iptables rules to run at system startup
+
+```
+echo "#! /sbin/iptables-restore" > /etc/network/if-up.d/iptables-rules
+iptables-save >> /etc/network/if-up.d/iptables-rules
+chmod +x /etc/network/if-up.d/iptables-rules
+```
+
+
 ## Validating the task
 1. ### From host itself
 

@@ -29,6 +29,9 @@ iptables -t mangle -F
 iptables -t mangle -X
 iptables -Z
 
+# allow loopback
+iptables -A INPUT -i lo -j ACCEPT
+
 # allowing all ESTABLISHED
 iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 iptables -A OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
@@ -44,8 +47,8 @@ iptables -A INPUT -p ICMP --icmp-type echo-request -j ACCEPT
 iptables -I OUTPUT -p ICMP -j ACCEPT
 
 # allowing DNS 53/UDP
-iptables -A INPUT -p UDP --dport 53 -j ACCEPT
 iptables -A OUTPUT -p UDP --dport 53 -j ACCEPT
+iptables -A INPUT -p ALL -m state --state RELATED,ESTABLISHED -j ACCEPT
 
 # allowing 80/TCP 443/TCP outgoing traffic
 iptables -A OUTPUT -p TCP --dport 80 -j ACCEPT

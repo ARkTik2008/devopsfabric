@@ -28,7 +28,7 @@ ip link set eth0 down   # eliminate impact of virtual switch and DHCP
 ip link set eth1 up
 ip a add 192.168.11.1/24 dev eth1
 ip route add 172.31.255.0/25 via 192.168.11.2 dev eth1
-ip route add 10.10.10.0/26 via 192.168.1.2 dev eth1
+ip route add 10.10.10.0/26 via 192.168.11.2 dev eth1
 ```
 
 ### **2. On host2**

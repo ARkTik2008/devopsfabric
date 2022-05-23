@@ -29,8 +29,11 @@ ip link set eth0 down
 ip link set eth1 up
 ip a add 192.168.11.1/24 dev eth1
 route add default gw 192.168.11.1
-route add -net 172.31.255.0/25 dev eth1
-route add -net 10.10.10.0/26 dev eth1
+route add -net 172.31.255.0/25 gw 192.168.11.2 dev eth1
+route add -net 10.10.10.0/26 gw 192.168.11.2 dev eth1
+# 'route add' works w/o gw too
+#route add -net 172.31.255.0/25 dev eth1
+#route add -net 10.10.10.0/26 dev eth1
 ```
 
 ### **2. On host2**
@@ -42,7 +45,9 @@ ip link set eth1 up
 ip link set eth2 up
 ip a add 192.168.11.2/24 dev eth1
 ip a add 172.31.255.2/25 dev eth2
-route add -net 10.10.10.0/26 dev eth2
+route add -net 10.10.10.0/26 gw 172.31.255.3 dev eth2
+# 'route add' works w/o gw too
+#route add -net 10.10.10.0/26 dev eth2
 iptables -P FORWARD ACCEPT
 ```
 
@@ -55,7 +60,9 @@ ip link set eth1 up
 ip link set eth2 up
 ip a add 172.31.255.3/25 dev eth1
 ip a add 10.10.10.3/26 dev eth2
-route add -net 192.168.11.0/24 dev eth1
+route add -net 192.168.11.0/24 gw 172.31.255.2 dev eth1
+# 'route add' works w/o gw too
+#route add -net 192.168.11.0/24 dev eth1
 ```
 
 

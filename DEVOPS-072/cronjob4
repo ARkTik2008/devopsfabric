@@ -1,0 +1,7 @@
+# start every 10 seconds
+* * * * * root sleep  0 ; ( echo `date` | tee -a /var/log/cronjob4.log )
+* * * * * root sleep 10 ; ( echo `date` | tee -a /var/log/cronjob4.log )
+* * * * * root sleep 20 ; ( echo `date` | tee -a /var/log/cronjob4.log )
+* * * * * root sleep 30 ; ( echo `date` | tee -a /var/log/cronjob4.log )
+* * * * * root sleep 40 ; ( echo `date` | tee -a /var/log/cronjob4.log )
+* * * * * root sleep 50 ; ( echo `date` | tee -a /var/log/cronjob4.log )

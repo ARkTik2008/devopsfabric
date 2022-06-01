@@ -1,0 +1,2 @@
+# start at system startup
+@reboot root ( echo `date` | tee -a /var/log/cronjob2.log )

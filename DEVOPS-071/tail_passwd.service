@@ -1,0 +1,16 @@
+[Unit]
+Description=Small script to watching for list of the system’s accounts.
+
+[Service]
+ExecStart=/opt/tail_passwd.sh
+Restart=on-failure
+# time to sleep before restarting a service
+RestartSec=5s
+# how many restarts are allowed
+StartLimitBurst=5
+# logs
+StandardOutput=append:/var/log/tail_passwd_stdout.log
+StandardError=append:/var/log/tail_passwd_stderr.log
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,2 @@
+# start every 3 hours
+0 */3 * * * root ( echo `date` | tee -a /var/log/cronjob3.log )

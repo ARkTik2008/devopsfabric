@@ -1,0 +1,2 @@
+# start at 4.00 am on Saturdays
+0 4 * * 6 root ( echo `date` | tee -a /var/log/cronjob1.log )

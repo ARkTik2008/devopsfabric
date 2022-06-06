@@ -88,19 +88,19 @@ Password is stored in /tmp/mysql.log
 ```
 
 ## 2. sql-commands to create db and users
-There was a typo in the task in part of ip range `172.16.0.129-172.16.0.198`, I corrected it on `172.16.0.129-172.16.0.158` and really hope that I understood this correctly. Of course, there can be a range of such IP addresses, but it does not fit any subnet.
 
 ```console
 CREATE DATABASE application;
 
 CREATE USER 'app'@'10.10.0.176/28' IDENTIFIED WITH mysql_native_password BY 'strong_password_here';
-GRANT SELECT, INSERT, UPDATE, DELETE ON application.* TO 'app'@'10.10.0.176/28';
+GRANT CREATE, ALTER, DROP, INSERT, UPDATE, DELETE, SELECT ON application.* TO 'app'@'10.10.0.176/28';
 
-CREATE USER 'app_debug'@'172.16.0.128/27' IDENTIFIED WITH mysql_native_password BY 'strong_password_here';
-GRANT SELECT ON application.* TO 'app_debug'@'172.16.0.128/27';
+CREATE USER 'app_debug'@'172.16.0.128/26' IDENTIFIED WITH mysql_native_password BY 'strong_password_here';
+CREATE USER 'app_debug'@'172.16.0.192/29' IDENTIFIED WITH mysql_native_password BY 'strong_password_here';
+GRANT SELECT ON application.* TO 'app_debug'@'172.16.0.128/26', 'app_debug'@'172.16.0.192/29';
 
 CREATE USER 'app_backup'@'localhost' IDENTIFIED WITH auth_socket;
-GRANT SELECT, LOCK TABLES ON application.* TO 'app_backup'@'localhost';
+GRANT SELECT ON application.* TO 'app_backup'@'localhost';
 
 FLUSH PRIVILEGES;
 ```
@@ -114,7 +114,7 @@ mysql -u root < application_users.sql
 
 iptables -A INPUT -p tcp --destination-port 3306 -m iprange --src-range 10.10.0.177-10.10.0.190 -j ACCEPT
 
-iptables -A INPUT -p tcp --destination-port 3306 -m iprange --src-range 172.16.0.129-172.16.0.158 -j ACCEPT
+iptables -A INPUT -p tcp --destination-port 3306 -m iprange --src-range 172.16.0.129-172.16.0.198 -j ACCEPT
 
 ```
 

@@ -6,12 +6,6 @@
 
 set -e
 
-# check for root
-if [[ "$(id -u)" != "0" ]];then
-  echo "This script must be run as root" 1>&2
-  exit 1
-fi
-
 for ((i=1;i<=1000;i++));
   do
     ip=$(printf '%02d.%02d.%02d.%02d\n' $[RANDOM%256] $[RANDOM%256] \

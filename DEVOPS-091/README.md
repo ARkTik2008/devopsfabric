@@ -1,58 +1,92 @@
-# DEVOPS-081 direnv exercise
+# DEVOPS-091 ansible setup
 
 ## List of files:
-### 1. DEVOPS-081/environment1/.envrc
-File by direnv that exports custom variables and makes them available to the shell in current directory DEVOPS-081/environment1/.
+### 1. hosts
+Ansible inventiry file, in INI format, contains 3 hosts for running commands and playbooks. As being in custom location, it needs to be listed in ansible configuration file.  
+Please note, that host1 already has a modified sshd port from one of previous task.
 
-### 2. DEVOPS-091/environment2/.envrc
-File by direnv that exports custom variables and makes them available to the shell in current directory DEVOPS-091/environment2/.
+### 2. ansible.cfg
+Ansible configuration file, in INI format, contains some basic default values: the path to an inventory file, and the path to a vault password file. As being in custom location, it requires to be specified in an environment variable 'ANSIBLE_CONFIG'.
 
-### 3. README.md
+### 3. ansible_vault_pass
+Vault password file, contains the password for decrypting string from ansible vault in non-interactive mode. It is ignored by Git via .gitignore file.
+
+### 4. group_vars/ubuntu_hosts, group_vars/all
+Variables for host groups 'ubuntu_hosts' and 'all', moved from the inventory file for simplicity and easy to recognize.
+
+
+### 5. playbook_DEVOPS-091.yml
+Ansible playbook file, contains 2 main tasks: change sshd port and add user.
+
+### 6. README.md
 this file.
 
 ---
 
-## Installation
+## Pre-requisties
 
-```bash
-sudo apt install direnv
-echo 'eval "$(direnv hook bash)"' >> ~/.bashrc
-exit
-```
+`export ANSIBLE_CONFIG=./ansible.cfg`
 
 
-## Configuration
+## Run
 
-```bash
-mkdir -p devops-081/environment1/ && cd $_
-echo export AWS_ACCESS_KEY_ID=env1key > .envrc
-echo export AWS_SECRET_ACCESS_KEY=env1secret >> .envrc
-direnv allow
-```
+`ansible-playbook playbook_DEVOPS-091.yml -K`
 
-```bash
-mkdir -p DEVOPS-091/environment2/ && cd $_
-echo export AWS_ACCESS_KEY_ID=env2key > .envrc
-echo export AWS_SECRET_ACCESS_KEY=env2secret >> .envrc
-direnv allow
+```console
+BECOME password:
+
+PLAY [Change sshd port and add user] *****************************************************************************************************************************************************************************************
+
+TASK [Change sshd port if var 'use_custom_ssh_port' is true] *****************************************************************************************************************************************************************
+ok: [host1]
+changed: [host3]
+changed: [host2]
+
+TASK [Set variable for use in password hashing below] ************************************************************************************************************************************************************************
+ok: [host1]
+ok: [host2]
+ok: [host3]
+
+TASK [Add user 'admin' with password from secret variable] *******************************************************************************************************************************************************************
+changed: [host1]
+changed: [host2]
+changed: [host3]
+
+RUNNING HANDLER [Restart sshd] ***********************************************************************************************************************************************************************************************
+changed: [host3]
+changed: [host2]
+
+PLAY RECAP *******************************************************************************************************************************************************************************************************************
+host1                      : ok=3    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+host2                      : ok=4    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+host3                      : ok=4    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ```
 
 
 ## Validation
+`ansible-inventory --graph`
 ```console
-cd DEVOPS-081/environment1/
-direnv: loading ~/WindowsShare/pashkov_dmitriy/DEVOPS-081/environment1/.envrc
-direnv: export +AWS_ACCESS_KEY_ID +AWS_SECRET_ACCESS_KEY
-dmitriy@ubuntu:~/WindowsShare/pashkov_dmitriy/DEVOPS-081/environment1$ echo $AWS_ACCESS_KEY_ID && echo $AWS_SECRET_ACCESS_KEY
-env1key
-env1secret
+@all:
+  |--@devenv:
+  |  |--host2
+  |--@rabbitmqservers:
+  |  |--host2
+  |--@ubuntu_hosts:
+  |  |--host1
+  |  |--host2
+  |  |--host3
+  |--@ungrouped:
+  |--@webservers:
+  |  |--host2
 ```
 
+### Results of executing playbook on all Hosts are idempotent
+`cat /etc/ssh/sshd_config | grep ^Port`
 ```console
-cd ../../DEVOPS-091/environment2/
-direnv: loading ~/WindowsShare/pashkov_dmitriy/DEVOPS-091/environment2/.envrc
-direnv: export +AWS_ACCESS_KEY_ID +AWS_SECRET_ACCESS_KEY
-dmitriy@ubuntu:~/WindowsShare/pashkov_dmitriy/DEVOPS-091/environment2$ echo $AWS_ACCESS_KEY_ID && echo $AWS_SECRET_ACCESS_KEY
-env2key
-env2secret
+Port 222
+```
+
+`cat /etc/passwd | grep ^admin`
+```console
+admin:x:1005:1005:Added by Ansible:/home/admin:/bin/bash
 ```

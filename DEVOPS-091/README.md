@@ -1,24 +1,24 @@
 # DEVOPS-091 ansible setup
 
 ## List of files:
-### 1. hosts
+### 1. ansible/hosts
 Ansible inventiry file, in INI format, contains 3 hosts for running commands and playbooks. As being in custom location, it needs to be listed in ansible configuration file.  
 Please note, that host1 already has a modified sshd port from one of previous task.
 
-### 2. ansible.cfg
+### 2. ansible/ansible.cfg
 Ansible configuration file, in INI format, contains some basic default values: the path to an inventory file, and the path to a vault password file. As being in custom location, it requires to be specified in an environment variable 'ANSIBLE_CONFIG'.
 
-### 3. ansible_vault_pass
+### 3. ansible/ansible_vault_pass
 Vault password file, contains the password for decrypting string from ansible vault in non-interactive mode. It is ignored by Git via .gitignore file.
 
-### 4. group_vars/ubuntu_hosts, group_vars/all
+### 4. ansible/group_vars/ubuntu_hosts, group_vars/all
 Variables for host groups 'ubuntu_hosts' and 'all', moved from the inventory file for simplicity and easy to recognize.
 
 
-### 5. playbook_DEVOPS-091.yml
+### 5. ansible/playbook_DEVOPS-091.yml
 Ansible playbook file, contains 2 main tasks: change sshd port and add user.
 
-### 6. README.md
+### 6. DEVOPS-091/README.md
 this file.
 
 ---

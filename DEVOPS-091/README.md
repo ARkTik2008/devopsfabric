@@ -25,25 +25,29 @@ this file.
 
 ## Pre-requisties
 
-`export ANSIBLE_CONFIG=./ansible.cfg`
-
-
-## Run
-
-`ansible-playbook playbook_DEVOPS-091.yml`
+`Set up vars by direnv`
 
 ```console
+cd ansible
+echo export ANSIBLE_VAULT_PASSWORD_FILE="/mnt/c/UbuntuServer/ansible_vault/.ansible_vault_pass" > .envrc
+echo export ANSIBLE_CONFIG=./ansible.cfg >> .envrc
+direnv allow
+```
+
+
+## First run
+
+`ansible-playbook playbook-091.yml -u dmitriy --private-key /home/root1/.ssh/id_ed25519 -K`
+
+```console
+BECOME password:
+
 PLAY [Change sshd port and add user] *****************************************************************************************************************************************************************************************
 
 TASK [Change sshd port if var 'use_custom_ssh_port' is true] *****************************************************************************************************************************************************************
-ok: [host1]
-changed: [host2]
 changed: [host3]
-
-TASK [Set variable for use in password hashing below] ************************************************************************************************************************************************************************
+changed: [host2]
 ok: [host1]
-ok: [host2]
-ok: [host3]
 
 TASK [Add user 'admin' with password from secret variable] *******************************************************************************************************************************************************************
 changed: [host1]
@@ -55,9 +59,35 @@ changed: [host2]
 changed: [host3]
 
 PLAY RECAP *******************************************************************************************************************************************************************************************************************
-host1                      : ok=3    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-host2                      : ok=4    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-host3                      : ok=4    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+host1                      : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+host2                      : ok=3    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+host3                      : ok=3    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+
+## Second and subsequent runs
+
+`ansible-playbook playbook-091.yml -u dmitriy --private-key /home/root1/.ssh/id_ed25519 -K -e 'ansible_ssh_port=222'`
+
+```console
+BECOME password:
+
+PLAY [Change sshd port and add user] *****************************************************************************************************************************************************************************************
+
+TASK [Change sshd port if var 'use_custom_ssh_port' is true] *****************************************************************************************************************************************************************
+ok: [host1]
+ok: [host2]
+ok: [host3]
+
+TASK [Add user 'admin' with password from secret variable] *******************************************************************************************************************************************************************
+changed: [host1]
+changed: [host2]
+changed: [host3]
+
+PLAY RECAP *******************************************************************************************************************************************************************************************************************
+host1                      : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+host2                      : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+host3                      : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ```
 
 
@@ -85,43 +115,25 @@ host3                      : ok=4    changed=3    unreachable=0    failed=0    s
         "hostvars": {
             "host1": {
                 "ANSIBLE_HOST_KEY_CHECKING": false,
-                "admin_password": {
-                    "__ansible_vault": "$ANSIBLE_VAULT;1.1;AES256\n31393338313261656161386235336635666334326336326135353437363137393234323036343932\n3139356365393864636135623534663237386166663864330a383333393833326136656261343964\n32663236613865376433326266366566386462336262336237663663346361326635636132383261\n6662336636396335310a383833323261393863616538613435306336653435613438653632326639\n31653138623661323439646535343832653735646562633362346265393462613366\n"
-                },
-                "ansible_become_pass": {
-                    "__ansible_vault": "$ANSIBLE_VAULT;1.1;AES256\n38666462343266383732653133346635316362323737353265373965616365663934333030386339\n6437396535633631613032326161373862626161306566640a613434333262393838343234393230\n36303439343238636239383662656262643534353664646363623832643335383935643166363038\n3865656632643431620a616565336530363862613233333037363061623764373064653439353236\n3533"
-                },
+                "admin_password": "{{ vault_admin_password }}",
                 "ansible_host": "192.168.88.111",
                 "ansible_port": 222,
-                "ansible_ssh_private_key_file": "/home/root1/.ssh/id_ed25519",
-                "ansible_user": "dmitriy",
-                "use_custom_ssh_port": true
+                "use_custom_ssh_port": true,
+                "vault_admin_password": "\\'LXyRKXVXehs2YE!R\\\"jvizKwz!"
             },
             "host2": {
                 "ANSIBLE_HOST_KEY_CHECKING": false,
-                "admin_password": {
-                    "__ansible_vault": "$ANSIBLE_VAULT;1.1;AES256\n31393338313261656161386235336635666334326336326135353437363137393234323036343932\n3139356365393864636135623534663237386166663864330a383333393833326136656261343964\n32663236613865376433326266366566386462336262336237663663346361326635636132383261\n6662336636396335310a383833323261393863616538613435306336653435613438653632326639\n31653138623661323439646535343832653735646562633362346265393462613366\n"
-                },
-                "ansible_become_pass": {
-                    "__ansible_vault": "$ANSIBLE_VAULT;1.1;AES256\n38666462343266383732653133346635316362323737353265373965616365663934333030386339\n6437396535633631613032326161373862626161306566640a613434333262393838343234393230\n36303439343238636239383662656262643534353664646363623832643335383935643166363038\n3865656632643431620a616565336530363862613233333037363061623764373064653439353236\n3533"
-                },
+                "admin_password": "{{ vault_admin_password }}",
                 "ansible_host": "192.168.88.108",
-                "ansible_ssh_private_key_file": "/home/root1/.ssh/id_ed25519",
-                "ansible_user": "dmitriy",
-                "use_custom_ssh_port": true
+                "use_custom_ssh_port": true,
+                "vault_admin_password": "\\'LXyRKXVXehs2YE!R\\\"jvizKwz!"
             },
             "host3": {
                 "ANSIBLE_HOST_KEY_CHECKING": false,
-                "admin_password": {
-                    "__ansible_vault": "$ANSIBLE_VAULT;1.1;AES256\n31393338313261656161386235336635666334326336326135353437363137393234323036343932\n3139356365393864636135623534663237386166663864330a383333393833326136656261343964\n32663236613865376433326266366566386462336262336237663663346361326635636132383261\n6662336636396335310a383833323261393863616538613435306336653435613438653632326639\n31653138623661323439646535343832653735646562633362346265393462613366\n"
-                },
-                "ansible_become_pass": {
-                    "__ansible_vault": "$ANSIBLE_VAULT;1.1;AES256\n38666462343266383732653133346635316362323737353265373965616365663934333030386339\n6437396535633631613032326161373862626161306566640a613434333262393838343234393230\n36303439343238636239383662656262643534353664646363623832643335383935643166363038\n3865656632643431620a616565336530363862613233333037363061623764373064653439353236\n3533"
-                },
+                "admin_password": "{{ vault_admin_password }}",
                 "ansible_host": "192.168.88.107",
-                "ansible_ssh_private_key_file": "/home/root1/.ssh/id_ed25519",
-                "ansible_user": "dmitriy",
-                "use_custom_ssh_port": true
+                "use_custom_ssh_port": true,
+                "vault_admin_password": "\\'LXyRKXVXehs2YE!R\\\"jvizKwz!"
             }
         }
     },
@@ -160,7 +172,7 @@ host3                      : ok=4    changed=3    unreachable=0    failed=0    s
 ```
 
 
-## Results of executing playbook on all Hosts are idempotent
+## Results of playing playbook
 `cat /etc/ssh/sshd_config | grep ^Port`
 ```console
 Port 222

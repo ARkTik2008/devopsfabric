@@ -1,0 +1,2 @@
+ANSIBLE_HOST_KEY_CHECKING: False
+admin_password: "{{ vault_admin_password }}"

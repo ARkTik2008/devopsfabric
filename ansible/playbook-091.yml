@@ -1,0 +1,31 @@
+---
+- name: Change sshd port and add user
+  hosts: all
+  gather_facts: no
+  become: yes
+  tasks:
+  
+  - name: Change sshd port if var 'use_custom_ssh_port' is true
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^Port '
+      insertafter: '^#Port 22'
+      line: Port 222
+    when: use_custom_ssh_port==true
+    notify: "Restart sshd"
+
+  - name: Add user 'admin' with password from secret variable
+    user:
+      name: admin
+      comment: "Added by Ansible"
+      shell: /bin/bash
+      groups: sudo
+      # get password hash as ansible FAQ recommends
+      password: "{{ admin_password | password_hash('sha512') }}"
+      append: yes
+  
+  handlers:
+    - name: Restart sshd
+      service:
+        name: sshd
+        state: restarted

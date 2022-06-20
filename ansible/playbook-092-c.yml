@@ -1,0 +1,14 @@
+---
+# This playbook deploys RabbitMQ.
+
+- name: Deploy RabbitMQ
+  hosts: all
+  gather_facts: yes
+  become: yes
+  
+  collections:
+  - sudmed.rabbitmq
+
+  tasks:
+    - import_role:
+        name: rabbitmq

@@ -1,0 +1,67 @@
+---
+# tasks file for rabbitmq
+- name: Add erlang repository from RabbitMQ team
+  apt_repository:
+    repo: ppa:rabbitmq/rabbitmq-erlang
+    state: present
+    install_python_apt: yes
+    update_cache: yes
+
+- name: Install erlang
+  apt:
+    name:
+    - erlang
+    state: present
+
+- name: Install RabbitMQ server
+  apt:
+    deb: "{{ rabbitmq_deb_url }}"
+    state: present
+  
+- name: Copy rabbitmq config file
+  copy: 
+    src: rabbitmq.conf
+    dest: /etc/rabbitmq/rabbitmq.conf
+    mode: 0644
+  notify: Restart rabbitmq
+
+- name: Start and enable rabbitmq
+  service:
+    name: rabbitmq-server
+    state: started
+    enabled: true
+
+- wait_for:
+      port: 5672
+
+- name: Add vhosts to rabbitmq
+  command: "{{ item }}"
+  loop:
+    - rabbitmqctl add_vhost appa
+    - rabbitmqctl add_vhost appb
+    - rabbitmqctl add_vhost appc
+
+- name: Check if user exists
+  command: sudo rabbitmqctl list_users
+  register: result
+# - debug:
+#     var: result.stdout_lines
+
+- name: Add user appa to rabbitmq
+  command: rabbitmqctl add_user appa {{ passwd_appa }}
+  when: '"appa\t[]" not in result.stdout_lines'
+
+- name: Add user appb to rabbitmq
+  command: rabbitmqctl add_user appb {{ passwd_appb }}
+  when: '"appb\t[]" not in result.stdout_lines'
+
+- name: Add user appc to rabbitmq
+  command: rabbitmqctl add_user appc {{ passwd_appc }}
+  when: '"appc\t[]" not in result.stdout_lines'
+
+- name: Set permissions to rabbitmq
+  command: "{{ item }}"
+  loop:
+    - rabbitmqctl set_permissions -p appa appa ".*" ".*" ".*"
+    - rabbitmqctl set_permissions -p appb appb ".*" ".*" ".*"
+    - rabbitmqctl set_permissions -p appc appc ".*" ".*" ".*"

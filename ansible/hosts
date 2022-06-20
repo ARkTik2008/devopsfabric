@@ -1,5 +1,5 @@
 [ubuntu_hosts]
-host1 ansible_host=192.168.88.111   ansible_port=222
+host1 ansible_host=192.168.88.111   # ansible_port=222
 host2 ansible_host=192.168.88.108
 host3 ansible_host=192.168.88.107
 

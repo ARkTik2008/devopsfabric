@@ -1,2 +1,6 @@
 ANSIBLE_HOST_KEY_CHECKING: False
 admin_password: "{{ vault_admin_password }}"
+ansible_port: 222
+passwd_appa: "{{ vault_passwd_appa }}"
+passwd_appb: "{{ vault_passwd_appb }}"
+passwd_appc: "{{ vault_passwd_appc }}"

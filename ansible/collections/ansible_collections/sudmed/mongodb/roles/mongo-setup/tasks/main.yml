@@ -1,0 +1,81 @@
+---
+# tasks file for mongo-setup
+- name: Check if gnupg installed
+  apt: 
+    pkg: gnupg
+    state: present
+    update_cache: yes
+
+- name: Add apt signing key
+  apt_key:
+    url: https://pgp.mongodb.com/server-5.0.asc
+    state: present
+
+- name: Add Yandex mirror MongoDB repository
+  apt_repository: 
+    # repo: 'https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse'  # 403 ERROR 'block access from your country'
+    repo: 'deb https://mirror.yandex.ru/mirrors/repo.mongodb.org/apt/ubuntu/ focal/mongodb-org/5.0 multiverse' 
+    state: present
+
+- name: Install standalone node MongoDB
+  apt: 
+    pkg: mongodb-org
+    state: latest
+    update_cache: yes
+  notify:
+  - start mongodb
+
+- name: Change MongoDB default port
+  lineinfile:
+      path: /etc/mongod.conf
+      regexp: '^  port: 27017'
+      line: '  port: 28000'
+      state: present
+  notify: restart mongodb
+
+- name: Flush handlers
+  meta: flush_handlers
+
+- name: Disable MongoDB FreeMonitoring & Telemetry
+  shell: |
+    mongosh --port 28000 admin <<EOF
+    db.disableFreeMonitoring()
+    disableTelemetry()
+    exit
+    EOF
+
+- name: Create MongoDB user admin
+  # superuser, can create new users & roles
+  shell: |
+    mongosh --port 28000 admin <<EOF
+    db.createUser({ user: "admin", pwd: "{{ passwd_mongo_admin }}", roles: [{role: "userAdminAnyDatabase", db: "admin"}] })
+    exit
+    EOF
+
+- name: Enable Authentication on MongoDB
+  lineinfile:
+      path: /etc/mongod.conf
+      regexp: '^#security:'
+      line: |
+        security:
+          authorization: enabled
+      state: present
+      backrefs: yes
+  notify: restart mongodb
+
+- name: Create MongoDB user dbadmin
+  # cluster & any db administration
+  shell: |
+    mongosh --port 28000 admin -u admin -p "{{ passwd_mongo_admin }}" <<EOF
+    db.createUser({ user: "dbadmin", pwd: "{{ passwd_mongo_dbadmin }}", roles: [ "readWriteAnyDatabase", "dbAdminAnyDatabase", "clusterAdmin" ] })
+    exit
+    EOF
+
+- name: Create MongoDB ordinary user
+  # user for read/write access to 'application' db only
+  shell: |
+    mongosh --port 28000 admin -u admin -p "{{ passwd_mongo_admin }}" <<EOF
+    use application
+    db.createUser({ user: "dbuser", pwd: "{{ passwd_mongo_dbuser }}", roles: [{ role: "readWrite", db: "application"}] })
+    exit
+    EOF

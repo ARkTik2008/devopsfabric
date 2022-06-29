@@ -1,0 +1,14 @@
+---
+# This playbook installs and configures MongoDB Community Edition.
+
+- name: Deploy MongoDB
+  hosts: all
+  gather_facts: yes
+  become: yes
+  
+  collections:
+  - sudmed.mongodb
+
+  tasks:
+    - import_role:
+        name: mongo-setup

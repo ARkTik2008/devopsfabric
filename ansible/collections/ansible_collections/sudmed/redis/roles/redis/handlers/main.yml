@@ -4,19 +4,3 @@
   systemd:
     name: redis
     state: restarted
-
-- name: Start Redis
-  systemd:
-    name: redis
-    state: started
-
-- name: Stop Redis
-  systemd:
-    name: redis
-    state: stopped
-
-- name: Enable Redis
-  systemd:
-    name: redis
-    enabled: yes
-    

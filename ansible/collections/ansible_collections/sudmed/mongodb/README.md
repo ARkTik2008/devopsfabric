@@ -1,3 +1,3 @@
 # Ansible Collection - sudmed.mongodb
 
-Documentation for the collection.
+This collection installs and configures MongoDB Community Edition.

@@ -44,31 +44,61 @@ ok: [host1]
 ok: [host2]
 
 TASK [sudmed.mongodb.mongo-setup : Add apt signing key] **********************************************************************************************************************************************************************
+ok: [host1]
+ok: [host2]
 ok: [host3]
-changed: [host1]
-changed: [host2]
 
 TASK [sudmed.mongodb.mongo-setup : Add Yandex mirror MongoDB repository] *****************************************************************************************************************************************************
 ok: [host3]
-changed: [host1]
-changed: [host2]
+ok: [host2]
+ok: [host1]
 
 TASK [sudmed.mongodb.mongo-setup : Install standalone node MongoDB] **********************************************************************************************************************************************************
-changed: [host3]
-changed: [host2]
-changed: [host1]
-
-TASK [sudmed.mongodb.mongo-setup : Change MongoDB default port] **************************************************************************************************************************************************************
-changed: [host2]
 changed: [host1]
 changed: [host3]
+changed: [host2]
 
-TASK [sudmed.mongodb.mongo-setup : Flush handlers] ***************************************************************************************************************************************************************************
+TASK [sudmed.mongodb.mongo-setup : Flush handlers at this point] *************************************************************************************************************************************************************
 
 RUNNING HANDLER [sudmed.mongodb.mongo-setup : start mongodb] *****************************************************************************************************************************************************************
+changed: [host2]
+changed: [host1]
+changed: [host3]
+
+TASK [sudmed.mongodb.mongo-setup : Enable mongod service on startup] *********************************************************************************************************************************************************
+ok: [host2]
+ok: [host1]
+ok: [host3]
+
+TASK [sudmed.mongodb.mongo-setup : Check if user admin exists] ***************************************************************************************************************************************************************
+fatal: [host2]: FAILED! => {"changed": true, "cmd": ["mongosh", "--port", "28000", "admin", "-u", "admin", "-p", "NmUzNjUwY2ZmNWY5YmNiYTk1ZjI1OWZjOWVhMzVlZDYwMDdjNTE0NzQ1MTUwZjNhYWQyYWZjMjkxNWEzOTRiNDljZGNhMDllOTA3M2NjZGMyY2U4MGY1NjI5M2MwMTVk", "--eval", "db.runCommand({ connectionStatus : 1 })"], "delta": "0:00:00.720095", "end": "2022-06-30 12:19:16.203901", "msg": "non-zero return code", "rc": 1, "start": "2022-06-30 12:19:15.483806", "stderr": "MongoNetworkError: connect ECONNREFUSED 127.0.0.1:28000", "stderr_lines": ["MongoNetworkError: connect ECONNREFUSED 127.0.0.1:28000"], "stdout": "Current Mongosh Log ID:\t62bd94c48e3db460bf440f00\nConnecting to:\t\tmongodb://<credentials>@127.0.0.1:28000/admin?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.5.0", "stdout_lines": ["Current Mongosh Log ID:\t62bd94c48e3db460bf440f00", "Connecting to:\t\tmongodb://<credentials>@127.0.0.1:28000/admin?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.5.0"]}
+...ignoring
+fatal: [host1]: FAILED! => {"changed": true, "cmd": ["mongosh", "--port", "28000", "admin", "-u", "admin", "-p", "NmUzNjUwY2ZmNWY5YmNiYTk1ZjI1OWZjOWVhMzVlZDYwMDdjNTE0NzQ1MTUwZjNhYWQyYWZjMjkxNWEzOTRiNDljZGNhMDllOTA3M2NjZGMyY2U4MGY1NjI5M2MwMTVk", "--eval", "db.runCommand({ connectionStatus : 1 })"], "delta": "0:00:00.743275", "end": "2022-06-30 12:19:16.227372", "msg": "non-zero return code", "rc": 1, "start": "2022-06-30 12:19:15.484097", "stderr": "MongoNetworkError: connect ECONNREFUSED 127.0.0.1:28000", "stderr_lines": ["MongoNetworkError: connect ECONNREFUSED 127.0.0.1:28000"], "stdout": "Current Mongosh Log ID:\t62bd94c4e7701564d63100eb\nConnecting to:\t\tmongodb://<credentials>@127.0.0.1:28000/admin?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.5.0", "stdout_lines": ["Current Mongosh Log ID:\t62bd94c4e7701564d63100eb", "Connecting to:\t\tmongodb://<credentials>@127.0.0.1:28000/admin?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.5.0"]}
+...ignoring
+fatal: [host3]: FAILED! => {"changed": true, "cmd": ["mongosh", "--port", "28000", "admin", "-u", "admin", "-p", "NmUzNjUwY2ZmNWY5YmNiYTk1ZjI1OWZjOWVhMzVlZDYwMDdjNTE0NzQ1MTUwZjNhYWQyYWZjMjkxNWEzOTRiNDljZGNhMDllOTA3M2NjZGMyY2U4MGY1NjI5M2MwMTVk", "--eval", "db.runCommand({ connectionStatus : 1 })"], "delta": "0:00:00.787207", "end": "2022-06-30 12:19:16.282779", "msg": "non-zero return code", "rc": 1, "start": "2022-06-30 12:19:15.495572", "stderr": "MongoNetworkError: connect ECONNREFUSED 127.0.0.1:28000", "stderr_lines": ["MongoNetworkError: connect ECONNREFUSED 127.0.0.1:28000"], "stdout": "Current Mongosh Log ID:\t62bd94c426bcf731b7c74ce2\nConnecting to:\t\tmongodb://<credentials>@127.0.0.1:28000/admin?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.5.0", "stdout_lines": ["Current Mongosh Log ID:\t62bd94c426bcf731b7c74ce2", "Connecting to:\t\tmongodb://<credentials>@127.0.0.1:28000/admin?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.5.0"]}
+...ignoring
+
+TASK [sudmed.mongodb.mongo-setup : Create MongoDB user admin] ****************************************************************************************************************************************************************
+changed: [host2]
 changed: [host3]
 changed: [host1]
+
+TASK [sudmed.mongodb.mongo-setup : Create MongoDB user dbadmin] **************************************************************************************************************************************************************
+changed: [host3]
 changed: [host2]
+changed: [host1]
+
+TASK [sudmed.mongodb.mongo-setup : Create MongoDB ordinary user] *************************************************************************************************************************************************************
+changed: [host2]
+changed: [host1]
+changed: [host3]
+
+TASK [sudmed.mongodb.mongo-setup : Set configuration file] *******************************************************************************************************************************************************************
+changed: [host2]
+changed: [host1]
+changed: [host3]
+
+TASK [sudmed.mongodb.mongo-setup : Flush handlers at this point] *************************************************************************************************************************************************************
 
 RUNNING HANDLER [sudmed.mongodb.mongo-setup : restart mongodb] ***************************************************************************************************************************************************************
 changed: [host2]
@@ -76,39 +106,14 @@ changed: [host1]
 changed: [host3]
 
 TASK [sudmed.mongodb.mongo-setup : Disable MongoDB FreeMonitoring & Telemetry] ***********************************************************************************************************************************************
-changed: [host3]
-changed: [host2]
-changed: [host1]
-
-TASK [sudmed.mongodb.mongo-setup : Create MongoDB user admin] ****************************************************************************************************************************************************************
 changed: [host1]
 changed: [host3]
 changed: [host2]
-
-TASK [sudmed.mongodb.mongo-setup : Enable Authentication on MongoDB] *********************************************************************************************************************************************************
-changed: [host1]
-changed: [host2]
-changed: [host3]
-
-TASK [sudmed.mongodb.mongo-setup : Create MongoDB user dbadmin] **************************************************************************************************************************************************************
-changed: [host1]
-changed: [host2]
-changed: [host3]
-
-TASK [sudmed.mongodb.mongo-setup : Create MongoDB ordinary user] *************************************************************************************************************************************************************
-changed: [host1]
-changed: [host3]
-changed: [host2]
-
-RUNNING HANDLER [sudmed.mongodb.mongo-setup : restart mongodb] ***************************************************************************************************************************************************************
-changed: [host1]
-changed: [host2]
-changed: [host3]
 
 PLAY RECAP *******************************************************************************************************************************************************************************************************************
-host1                      : ok=14   changed=12   unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-host2                      : ok=14   changed=12   unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-host3                      : ok=14   changed=10   unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+host1                      : ok=14   changed=9    unreachable=0    failed=0    skipped=0    rescued=0    ignored=1
+host2                      : ok=14   changed=9    unreachable=0    failed=0    skipped=0    rescued=0    ignored=1
+host3                      : ok=14   changed=9    unreachable=0    failed=0    skipped=0    rescued=0    ignored=1
 ```
 
 
@@ -122,95 +127,94 @@ BECOME password:
 PLAY [Deploy MongoDB] ********************************************************************************************************************************************************************************************************
 
 TASK [Gathering Facts] *******************************************************************************************************************************************************************************************************
-ok: [host2]
 ok: [host1]
 ok: [host3]
+ok: [host2]
 
 TASK [sudmed.mongodb.mongo-setup : Check if gnupg installed] *****************************************************************************************************************************************************************
-ok: [host3]
 ok: [host1]
 ok: [host2]
+ok: [host3]
 
 TASK [sudmed.mongodb.mongo-setup : Add apt signing key] **********************************************************************************************************************************************************************
-ok: [host3]
-ok: [host2]
 ok: [host1]
+ok: [host2]
+ok: [host3]
 
 TASK [sudmed.mongodb.mongo-setup : Add Yandex mirror MongoDB repository] *****************************************************************************************************************************************************
+ok: [host3]
 ok: [host2]
 ok: [host1]
-ok: [host3]
 
 TASK [sudmed.mongodb.mongo-setup : Install standalone node MongoDB] **********************************************************************************************************************************************************
 ok: [host2]
-ok: [host3]
 ok: [host1]
+ok: [host3]
 
-TASK [sudmed.mongodb.mongo-setup : Change MongoDB default port] **************************************************************************************************************************************************************
+TASK [sudmed.mongodb.mongo-setup : Flush handlers at this point] *************************************************************************************************************************************************************
+
+TASK [sudmed.mongodb.mongo-setup : Enable mongod service on startup] *********************************************************************************************************************************************************
+ok: [host3]
 ok: [host1]
 ok: [host2]
-ok: [host3]
 
-TASK [sudmed.mongodb.mongo-setup : Flush handlers] ***************************************************************************************************************************************************************************
+TASK [sudmed.mongodb.mongo-setup : Check if user admin exists] ***************************************************************************************************************************************************************
+changed: [host3]
+changed: [host2]
+changed: [host1]
+
+TASK [sudmed.mongodb.mongo-setup : Create MongoDB user admin] ****************************************************************************************************************************************************************
+skipping: [host1]
+skipping: [host2]
+skipping: [host3]
+
+TASK [sudmed.mongodb.mongo-setup : Create MongoDB user dbadmin] **************************************************************************************************************************************************************
+skipping: [host1]
+skipping: [host2]
+skipping: [host3]
+
+TASK [sudmed.mongodb.mongo-setup : Create MongoDB ordinary user] *************************************************************************************************************************************************************
+skipping: [host1]
+skipping: [host2]
+skipping: [host3]
+
+TASK [sudmed.mongodb.mongo-setup : Set configuration file] *******************************************************************************************************************************************************************
+ok: [host3]
+ok: [host1]
+ok: [host2]
+
+TASK [sudmed.mongodb.mongo-setup : Flush handlers at this point] *************************************************************************************************************************************************************
 
 TASK [sudmed.mongodb.mongo-setup : Disable MongoDB FreeMonitoring & Telemetry] ***********************************************************************************************************************************************
 changed: [host2]
-changed: [host1]
 changed: [host3]
-
-TASK [sudmed.mongodb.mongo-setup : Create MongoDB user admin] ****************************************************************************************************************************************************************
 changed: [host1]
-changed: [host2]
-changed: [host3]
-
-TASK [sudmed.mongodb.mongo-setup : Enable Authentication on MongoDB] *********************************************************************************************************************************************************
-ok: [host1]
-ok: [host2]
-ok: [host3]
-
-TASK [sudmed.mongodb.mongo-setup : Create MongoDB user dbadmin] **************************************************************************************************************************************************************
-changed: [host1]
-changed: [host2]
-changed: [host3]
-
-TASK [sudmed.mongodb.mongo-setup : Create MongoDB ordinary user] *************************************************************************************************************************************************************
-changed: [host1]
-changed: [host2]
-changed: [host3]
 
 PLAY RECAP *******************************************************************************************************************************************************************************************************************
-host1                      : ok=11   changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-host2                      : ok=11   changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-host3                      : ok=11   changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+host1                      : ok=9    changed=2    unreachable=0    failed=0    skipped=3    rescued=0    ignored=0
+host2                      : ok=9    changed=2    unreachable=0    failed=0    skipped=3    rescued=0    ignored=0
+host3                      : ok=9    changed=2    unreachable=0    failed=0    skipped=3    rescued=0    ignored=0
 ```
 
 
 ## 3. Validation on Host1  
 
-** `mongosh --port 28000 admin -u admin` **
+**`mongosh --port 28000 admin -u admin -p`**
 
 ```yaml
 Enter password: ********************************************************************************************************************************
-Current Mongosh Log ID: 62bcad497cfe9b8f656cb7df
+Current Mongosh Log ID: 62bd9be6fc9995a98959ef32
 Connecting to:          mongodb://<credentials>@127.0.0.1:28000/admin?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.5.0
 Using MongoDB:          5.0.9
 Using Mongosh:          1.5.0
 
 For mongosh info see: https://docs.mongodb.com/mongodb-shell/
 
-
-To help improve our products, anonymous usage data is collected and sent to MongoDB periodically (https://www.mongodb.com/legal/privacy-policy).
-You can opt-out by running the disableTelemetry() command.
-
-admin> show dbs
-admin   116.00 KiB
-config   12.00 KiB
-local    72.00 KiB
 admin> show users
 [
   {
     _id: 'admin.admin',
-    userId: UUID("234aba3f-7849-4332-b226-dd76ee31b42a"),
+    userId: UUID("439ed953-8cac-4894-95ba-74138cb327e9"),
     user: 'admin',
     db: 'admin',
     roles: [ { role: 'userAdminAnyDatabase', db: 'admin' } ],
@@ -218,26 +222,33 @@ admin> show users
   },
   {
     _id: 'admin.dbadmin',
-    userId: UUID("65e99aca-b067-4b6a-82db-4d89a8bab79d"),
+    userId: UUID("03190a46-9250-4f06-81b7-f75dc6fbaa2c"),
     user: 'dbadmin',
     db: 'admin',
     roles: [
+      { role: 'readWriteAnyDatabase', db: 'admin' },
       { role: 'dbAdminAnyDatabase', db: 'admin' },
-      { role: 'clusterAdmin', db: 'admin' },
-      { role: 'readWriteAnyDatabase', db: 'admin' }
+      { role: 'clusterAdmin', db: 'admin' }
     ],
     mechanisms: [ 'SCRAM-SHA-1', 'SCRAM-SHA-256' ]
   }
 ]
 admin>
+admin> show dbs
+admin        132.00 KiB
+application   40.00 KiB
+config       108.00 KiB
+local         72.00 KiB
+admin>
 ```
 
 
-** `mongosh --port 28000 admin -u dbadmin` **
+**`mongosh --port 28000 admin -u dbadmin -p`**
 
 ```yaml
+
 Enter password: ********************************************************************************************************************************
-Current Mongosh Log ID: 62bcadaa5c0a64139f6effce
+Current Mongosh Log ID: 62bd9c26ceaa289d6f247d3f
 Connecting to:          mongodb://<credentials>@127.0.0.1:28000/admin?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.5.0
 Using MongoDB:          5.0.9
 Using Mongosh:          1.5.0
@@ -246,26 +257,30 @@ For mongosh info see: https://docs.mongodb.com/mongodb-shell/
 
 ------
    The server generated these startup warnings when booting
-   2022-06-29T19:47:03.326+00:00: Using the XFS filesystem is strongly recommended with the WiredTiger storage engine. See http://dochub.mongodb.org/core/prodnotes-filesystem
+   2022-06-30T12:19:22.005+00:00: Using the XFS filesystem is strongly recommended with the WiredTiger storage engine. See http://dochub.mongodb.org/core/prodnotes-filesystem
 ------
 
-admin> show dbs
-admin   116.00 KiB
-config   60.00 KiB
-local    72.00 KiB
 admin> show users
-MongoServerError: not authorized on admin to execute command { usersInfo: 1, lsid: { id: UUID("e1aa47eb-9c87-401d-b0a0-98d9af57f412") }, $db: "admin" }
+MongoServerError: not authorized on admin to execute command { usersInfo: 1, lsid: { id: UUID("17cf440b-d5ca-4976-8005-710098c0fdbe") }, $db: "admin" }
+admin>
+
+admin> show dbs
+admin        132.00 KiB
+application   40.00 KiB
+config       108.00 KiB
+local         72.00 KiB
+admin>
 admin> use application
 switched to db application
 application>
 ```
 
 
-** `mongosh --port 28000 application -u dbuser` **
+**`mongosh --port 28000 application -u dbuser`**
 
 ```yaml
 Enter password: ********************
-Current Mongosh Log ID: 62bcae4e8cc0e0d39c50d96a
+Current Mongosh Log ID: 62bd9c7b74076bf39f9681c0
 Connecting to:          mongodb://<credentials>@127.0.0.1:28000/application?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.5.0
 Using MongoDB:          5.0.9
 Using Mongosh:          1.5.0
@@ -273,21 +288,40 @@ Using Mongosh:          1.5.0
 For mongosh info see: https://docs.mongodb.com/mongodb-shell/
 
 application> show dbs
-
+application  40.00 KiB
+application>
 application> db.mycollection.insertOne({"name":"ranjeet", "description":"How to enable security using SCRAM-SH1 mechanism"});
 {
   acknowledged: true,
-  insertedId: ObjectId("62bcae7c0a559779af74119e")
+  insertedId: ObjectId("62bd9cbe8a0d53e9f612ef07")
 }
+application>
 application> db.mycollection.find();
 [
   {
-    _id: ObjectId("62bcae7c0a559779af74119e"),
+    _id: ObjectId("62bd9cbe8a0d53e9f612ef07"),
     name: 'ranjeet',
     description: 'How to enable security using SCRAM-SH1 mechanism'
   }
 ]
-application> show dbs
-application  8.00 KiB
 application>
+application> show dbs
+application  80.00 KiB
+application>
+```
+
+  
+### One-liner 'Hello World'
+`mongosh --port 28000 application -u dbuser -p --eval 'db.application.insertOne({ "speech" : "Hello World!" }); cur = db.application.find();x=cur.next();print(x["speech"]);'`
+
+```yaml
+Current Mongosh Log ID: 62bd9ac63fd42cef86005ba2
+Connecting to:          mongodb://<credentials>@127.0.0.1:28000/application?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.5.0
+Using MongoDB:          5.0.9
+Using Mongosh:          1.5.0
+
+For mongosh info see: https://docs.mongodb.com/mongodb-shell/
+
+Hello World!
+
 ```

@@ -1,0 +1,14 @@
+---
+# This playbook deploys single Redis node.
+
+- name: Deploy Redis
+  hosts: all
+  gather_facts: no
+  become: yes
+  
+  collections:
+  - sudmed.redis
+
+  tasks:
+    - import_role:
+        name: redis

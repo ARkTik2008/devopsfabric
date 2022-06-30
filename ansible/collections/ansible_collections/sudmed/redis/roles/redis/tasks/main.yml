@@ -1,0 +1,45 @@
+---
+# tasks file for redis
+- name: Add Redis repo
+  shell: |
+    curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg --batch --yes
+    echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+
+- name: Install Redis server
+  apt:
+    name: redis-server
+    update_cache: yes
+    state: present
+
+- name: Start and enable Redis
+  service:
+    name: redis-server
+    state: started
+    enabled: true
+
+- name: Secure Redis with a strong password
+  lineinfile:
+    dest: /etc/redis/redis.conf
+    regexp: '^(# )?requirepass \w*$'
+    line: 'requirepass {{ redis_password }}'
+    state: present
+  notify:
+    - Restart Redis
+
+- name: Modify The Redis Persistence Mode (add AOF)
+  lineinfile:
+    dest: /etc/redis/redis.conf
+    regexp: '^(# )?appendonly no\w*$'
+    line: 'appendonly yes'
+    state: present
+  notify:
+    - Restart Redis
+
+- name: Modify The Redis Persistence Mode
+  lineinfile:
+    dest: /etc/redis/redis.conf
+    regexp: '^# save 3600 1 300 100 60 10000\w*$'
+    line: 'save 3600 1 300 100 60 10000'
+    state: present
+  notify:
+    - Restart Redis

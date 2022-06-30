@@ -4,3 +4,4 @@ ansible_port: 222
 passwd_appa: "{{ vault_passwd_appa }}"
 passwd_appb: "{{ vault_passwd_appb }}"
 passwd_appc: "{{ vault_passwd_appc }}"
+redis_password: "{{ vault_redis_password }}"

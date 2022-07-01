@@ -1,0 +1,95 @@
+---
+# tasks file for mongo-setup
+- name: Check if gnupg installed
+  apt: 
+    pkg: gnupg
+    state: present
+    update_cache: yes
+
+- name: Add apt signing key
+  apt_key:
+    url: https://pgp.mongodb.com/server-5.0.asc
+    state: present
+
+- name: Add Yandex mirror MongoDB repository
+  apt_repository: 
+    # repo: 'https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse'  # 403 ERROR 'block access from your country'
+    repo: 'deb https://mirror.yandex.ru/mirrors/repo.mongodb.org/apt/ubuntu/ focal/mongodb-org/5.0 multiverse' 
+    state: present
+
+- name: Install standalone node MongoDB
+  apt: 
+    pkg: mongodb-org
+    state: latest
+    update_cache: yes
+  notify:
+  - start mongodb
+
+- name: Flush handlers at this point
+  meta: flush_handlers
+
+- name: Enable mongod service on startup
+  service: 
+   name: mongod
+   enabled: yes
+
+- name: Check if user admin exists
+  command: |
+    mongosh --port 28000 admin -u admin -p "{{ passwd_mongo_admin }}" --eval 'db.runCommand({ connectionStatus : 1 })'
+  register: result
+  ignore_errors: True
+
+- name: Create MongoDB user admin
+  # superuser, can create new users & roles
+  shell: |
+    mongosh admin <<EOF
+    db.createUser({ user: "admin", pwd: "{{ passwd_mongo_admin }}", roles: [{role: "userAdminAnyDatabase", db: "admin"}] })
+    exit
+    EOF
+  when: result is failed
+
+- name: Create MongoDB user dbadmin
+  # cluster & any db administration
+  shell: |
+    mongosh admin <<EOF
+    db.createUser({ user: "dbadmin", pwd: "{{ passwd_mongo_dbadmin }}", roles: [ "readWriteAnyDatabase", "dbAdminAnyDatabase", "clusterAdmin" ] })
+    exit
+    EOF
+  when: result is failed
+
+- name: Create MongoDB ordinary user
+  # user for read/write access to 'application' db only
+  shell: |
+    mongosh application <<EOF
+    db.createUser({ user: "dbuser", pwd: "{{ passwd_mongo_dbuser }}", roles: [{ role: "readWrite", db: "application"}] })
+    exit
+    EOF
+  when: result is failed
+
+- name: Set configuration file
+  template:
+    src: mongod.conf.j2
+    dest: /etc/mongod.conf
+    owner: root
+    group: root
+    mode: '0615'
+  notify: restart mongodb
+
+- name: Flush handlers at this point
+  meta: flush_handlers
+
+- name: Disable MongoDB FreeMonitoring & Telemetry
+  shell: |
+    mongosh --port 28000 admin -u admin -p "{{ passwd_mongo_admin }}" <<EOF
+    db.disableFreeMonitoring()
+    disableTelemetry()
+    exit
+    EOF
+    mongosh --port 28000 admin -u dbadmin -p "{{ passwd_mongo_dbadmin }}" <<EOF
+    db.disableFreeMonitoring()
+    exit
+    EOF
+    mongosh --port 28000 application -u dbuser -p "{{ passwd_mongo_dbuser }}" <<EOF
+    db.disableFreeMonitoring()
+    exit
+    EOF

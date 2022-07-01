@@ -1,0 +1,6 @@
+---
+# defaults file for mongo-setup
+
+# Network
+mongodb_port: 28000
+mongodb_bind_ip: 127.0.0.1

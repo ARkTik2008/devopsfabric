@@ -1,0 +1,72 @@
+---
+# tasks file for mongo-backup
+
+- name: Check if backup user exists
+  command: |
+    mongosh --port 28000 admin -u backup -p "{{ passwd_mongo_backup }}" --eval 'db.runCommand({ connectionStatus : 1 })'
+  register: backup_exist
+  ignore_errors: True
+
+- name: Create MongoDB user backup
+  shell: |
+    mongosh --port 28000 admin -u admin -p "{{ passwd_mongo_admin }}" <<EOF
+    db.createUser({ user: "backup", pwd: "{{ passwd_mongo_backup }}", roles: [ "readAnyDatabase", "backup", "restore" ] })
+    exit
+    EOF
+  when: backup_exist is failed
+
+# backup script for some standalone db defined in extra-vars as 'mongo_backup_db'
+- name: backup script for standalone db {{ mongo_backup_db }}
+  block:
+  - name: Copy mongodb backup script for standalone db
+    template:
+      src: "mongodb_backup.sh"
+      dest: "/usr/local/bin/mongodb_backup.sh"
+      mode: 0755
+
+  - name: Set up on cron daily mongo backup for standalone db
+    cron:
+      name: "Daily mongo backup {{ mongo_backup_db }}"
+      minute: "{{ mongo_backup_minute }}"
+      hour: "{{ mongo_backup_hour }}"
+      job: "/usr/local/bin/mongodb_backup.sh {{ mongo_backup_db }} > /dev/null 2>&1"
+  when: mongo_backup_db is defined
+
+# backup script for all dbs, archived and gnu-ziped in one file
+- name: backup script for all dbs
+  block:
+  - name: Copy mongodb backup script for all dbs
+    template:
+      src: "mongodb_backup_all.sh"
+      dest: "/usr/local/bin/mongodb_backup_all.sh"
+      mode: 0755
+
+  - name: Set up on cron daily mongo backup
+    cron:
+      name: "Set up on cron daily mongo backup for all databases"
+      minute: "{{ mongo_backup_minute }}"
+      hour: "{{ mongo_backup_hour }}"
+      job: "/usr/local/bin/mongodb_backup_all.sh > /dev/null 2>&1"
+  when: mongo_backup_db is undefined and mongo_backup_now is undefined
+
+
+# immediately backup standalone db defined in extra-vars as 'mongo_backup_now'
+- name: Immediately backup standalone db {{ mongo_backup_now }}
+  block:
+  - name: Immediately backup standalone db {{ mongo_backup_now }}
+    shell: |
+      backup_dir="{{mongo_backup_path}}/{{ mongo_backup_now }}/${date}"
+      mkdir -p "${backup_dir}"
+      cd "${backup_dir}"
+      mongodump --authenticationDatabase=admin \
+        --username=backup --password="{{ passwd_mongo_backup }}" \
+        --port=28000 --db="{{ mongo_backup_now }}" \
+        --archive="{{ mongo_backup_now }}_$(date +%Y%m%d%H%M).gz" --gzip
+      echo "DB "{{ mongo_backup_now }}" was backed up to: "${backup_dir}""
+      echo -e "List of backups:\n$(ls -t)"
+    register: backup_result
+  
+  - name: Show results of immediately backup
+    debug:
+      var: backup_result.stdout_lines
+  when: mongo_backup_now is defined

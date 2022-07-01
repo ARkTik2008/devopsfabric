@@ -1,0 +1,7 @@
+---
+# defaults file for mongo-backup
+
+mongo_backup_path: "/usr/local/mongodb_backups"
+# mongo_backup_db: "stage_db1"
+mongo_backup_hour: "0"
+mongo_backup_minute: "15"

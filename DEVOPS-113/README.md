@@ -1,26 +1,40 @@
 # DEVOPS-113 mongodb backup
 
-В коллекцию [mongodb](/ansible/collections/ansible_collections/sudmed/mongodb/) добавлена новая роль `mongo-backup`. Роль выполняет три варианта резервного копирования:  
+В коллекцию [mongodb](/ansible/collections/ansible_collections/sudmed/mongodb/) добавлена новая роль `mongo-backup`. Роль позволяет выполнить три варианта резервного копирования:  
 1. бэкап всех БД по крону раз в сутки (вариант по умолчанию).
 
-2. бэкап одной определенной БД по крону раз в сутки, выполняется если задана переменная типа extra vars с названием `mongo_backup_db`, содержащая имя бэкапируемой БД:
+2. бэкап определенных БД по крону раз в сутки, выполняется если задана переменная   `mongo_backup_db` и в нее переданы названия бэкапируемых БД. Например:
 ```bash
-playbook.yml --extra-vars "mongo_backup_db=DBname"
+role\defaults\main.yml => mongo_backup_db: "stage_db1 stage_db3 stage_db5"
+```
+```bash
+ansible-playbook --extra-vars 'mongo_backup_db="stage_db1 stage_db3 stage_db5"'
 ```
 
-3. бэкап одной определенной БД немедленно, выполняется если задана переменная типа extra vars с названием `mongo_backup_now`, содержащая имя бэкапируемой БД:
+3. бэкап одной определенной БД однократно немедленно, выполняется если задана переменная с названием `mongo_backup_now`, содержащая имя бэкапируемой БД:
 ```bash
-playbook.yml --extra-vars "mongo_backup_now=DBname"
+ansible-playbook playbook.yml --extra-vars "mongo_backup_now=stage_db5"
 ```
 
-**Восстановление данных из бэкапа:**  
-`mongorestore --port=28000 -u=backup --gzip --drop --archive=/path/to/db_file.gz`
+## Vars:
+* mongo_host: "localhost"
+* mongo_port: "28000"
+* mongo_backup_path: "/usr/local/mongodb_backups"
+* mongo_backup_db: "ALL"
+* \# mongo_backup_db: "stage_db1 stage_db2 stage_db4"
+* mongo_backup_hour: "0"
+* mongo_backup_minute: "15"
+* backup_retain_days: "30"
+
+
+## Восстановление данных из бэкапа:
+`mongorestore --gzip --drop --archive=/path/to/db_file.gz`
 
 ---
 
 ## Validation 
 
-### 1. Default backup (set to cron backing up all databases)
+### 1. Default backup (set to cron backuping all databases)
 
 ```bash
 ansible-playbook playbook-113.yml -u dmitriy --private-key /home/root1/.ssh/id_ed25519 -K -l host1
@@ -40,16 +54,10 @@ changed: [host1]
 TASK [sudmed.mongodb.mongo-backup : Create MongoDB user backup] **************************************************************************************************************************************************************
 skipping: [host1]
 
-TASK [sudmed.mongodb.mongo-backup : Copy mongodb backup script for standalone db] ********************************************************************************************************************************************
-skipping: [host1]
-
-TASK [sudmed.mongodb.mongo-backup : Set up on cron daily mongo backup for standalone db] *************************************************************************************************************************************
-skipping: [host1]
-
-TASK [sudmed.mongodb.mongo-backup : Copy mongodb backup script for all dbs] **************************************************************************************************************************************************
+TASK [sudmed.mongodb.mongo-backup : Copy backup script] **********************************************************************************************************************************************************************
 changed: [host1]
 
-TASK [sudmed.mongodb.mongo-backup : Set up on cron daily mongo backup] *******************************************************************************************************************************************************
+TASK [sudmed.mongodb.mongo-backup : Set up script on cron] *******************************************************************************************************************************************************************
 changed: [host1]
 
 TASK [sudmed.mongodb.mongo-backup : Immediately backup standalone db {{ mongo_backup_now }}] *********************************************************************************************************************************
@@ -59,84 +67,140 @@ TASK [sudmed.mongodb.mongo-backup : Show results of immediately backup] ********
 skipping: [host1]
 
 PLAY RECAP *******************************************************************************************************************************************************************************************************************
-host1                      : ok=4    changed=3    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0
+host1                      : ok=4    changed=3    unreachable=0    failed=0    skipped=3    rescued=0    ignored=0
 ```
 
-#### On Host1
+#### Check cronjob
 `sudo crontab -l`  
 
 ```bash
-#Ansible: Set up on cron daily mongo backup for all databases
-15 0 * * * /usr/local/bin/mongodb_backup_all.sh > /dev/null 2>&1
+#Ansible: Daily mongo backup ALL
+15 0 * * * /usr/local/bin/mongodb_backup.sh ALL > /dev/null 2>&1
 ```
 
-`sudo /usr/local/bin/mongodb_backup_all.sh`  
+#### Running a cron job manually and immediately
+`sudo /usr/local/bin/mongodb_backup.sh ALL`  
 ```bash
-2022-07-01T21:45:08.841+0000    writing admin.system.users to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.843+0000    done dumping admin.system.users (5 documents)
-2022-07-01T21:45:08.843+0000    writing admin.system.version to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.844+0000    done dumping admin.system.version (3 documents)
-2022-07-01T21:45:08.844+0000    writing application.mycollection to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.845+0000    writing stage_db1.collection3 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.847+0000    writing stage_db1.collection1 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.851+0000    writing stage_db1.collection2 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.861+0000    done dumping application.mycollection (1000 documents)
-2022-07-01T21:45:08.861+0000    done dumping stage_db1.collection2 (1000 documents)
-2022-07-01T21:45:08.861+0000    writing stage_db1.collection4 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.861+0000    writing stage_db2.collection3 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.865+0000    done dumping stage_db1.collection3 (1000 documents)
-2022-07-01T21:45:08.865+0000    writing stage_db2.collection1 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.867+0000    done dumping stage_db1.collection1 (1000 documents)
-2022-07-01T21:45:08.868+0000    writing stage_db2.collection2 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.870+0000    done dumping stage_db1.collection4 (1000 documents)
-2022-07-01T21:45:08.870+0000    done dumping stage_db2.collection3 (1000 documents)
-2022-07-01T21:45:08.871+0000    writing stage_db3.collection4 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.871+0000    writing stage_db2.collection4 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.881+0000    done dumping stage_db3.collection4 (1000 documents)
-2022-07-01T21:45:08.881+0000    writing stage_db3.collection3 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.881+0000    done dumping stage_db2.collection2 (1000 documents)
-2022-07-01T21:45:08.882+0000    writing stage_db3.collection2 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.885+0000    done dumping stage_db2.collection1 (1000 documents)
-2022-07-01T21:45:08.886+0000    writing stage_db3.collection1 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.890+0000    done dumping stage_db3.collection3 (1000 documents)
-2022-07-01T21:45:08.890+0000    writing stage_db4.collection2 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.896+0000    done dumping stage_db3.collection2 (1000 documents)
-2022-07-01T21:45:08.897+0000    writing stage_db4.collection3 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.898+0000    done dumping stage_db2.collection4 (1000 documents)
-2022-07-01T21:45:08.898+0000    writing stage_db4.collection4 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.899+0000    done dumping stage_db4.collection2 (1000 documents)
-2022-07-01T21:45:08.899+0000    writing stage_db4.collection1 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.907+0000    done dumping stage_db3.collection1 (1000 documents)
-2022-07-01T21:45:08.907+0000    writing stage_db5.collection2 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.909+0000    done dumping stage_db4.collection4 (1000 documents)
-2022-07-01T21:45:08.909+0000    writing stage_db5.collection4 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.912+0000    done dumping stage_db4.collection1 (1000 documents)
-2022-07-01T21:45:08.912+0000    done dumping stage_db4.collection3 (1000 documents)
-2022-07-01T21:45:08.912+0000    writing stage_db5.collection1 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.913+0000    writing stage_db5.collection3 to archive 'all_dbs_202207012145.gz'
-2022-07-01T21:45:08.921+0000    done dumping stage_db5.collection2 (1000 documents)
-2022-07-01T21:45:08.923+0000    done dumping stage_db5.collection4 (1000 documents)
-2022-07-01T21:45:08.923+0000    done dumping stage_db5.collection1 (1000 documents)
-2022-07-01T21:45:08.924+0000    done dumping stage_db5.collection3 (1000 documents)
-All dbs were backed up to: /usr/local/mongodb_backups/all_dbs/2022-07-01/
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+The backup script for MongoDB
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Starting backup for all databases
+2022-07-02T16:09:24.754+0000    writing admin.system.users to /usr/local/mongodb_backups/2022-07-02/admin/system.users.bson.gz
+2022-07-02T16:09:24.755+0000    done dumping admin.system.users (5 documents)
+2022-07-02T16:09:24.755+0000    writing admin.system.version to /usr/local/mongodb_backups/2022-07-02/admin/system.version.bson.gz
+2022-07-02T16:09:24.755+0000    done dumping admin.system.version (3 documents)
+2022-07-02T16:09:24.756+0000    writing application.mycollection to /usr/local/mongodb_backups/2022-07-02/application/mycollection.bson.gz
+2022-07-02T16:09:24.756+0000    writing stage_db1.collection1 to /usr/local/mongodb_backups/2022-07-02/stage_db1/collection1.bson.gz
+2022-07-02T16:09:24.756+0000    writing stage_db1.collection2 to /usr/local/mongodb_backups/2022-07-02/stage_db1/collection2.bson.gz
+2022-07-02T16:09:24.757+0000    writing stage_db1.collection3 to /usr/local/mongodb_backups/2022-07-02/stage_db1/collection3.bson.gz
+2022-07-02T16:09:24.764+0000    done dumping stage_db1.collection2 (1000 documents)
+2022-07-02T16:09:24.764+0000    writing stage_db1.collection4 to /usr/local/mongodb_backups/2022-07-02/stage_db1/collection4.bson.gz
+2022-07-02T16:09:24.766+0000    done dumping stage_db1.collection3 (1000 documents)
+2022-07-02T16:09:24.766+0000    writing stage_db2.collection2 to /usr/local/mongodb_backups/2022-07-02/stage_db2/collection2.bson.gz
+2022-07-02T16:09:24.767+0000    done dumping stage_db1.collection1 (1000 documents)
+2022-07-02T16:09:24.767+0000    writing stage_db2.collection4 to /usr/local/mongodb_backups/2022-07-02/stage_db2/collection4.bson.gz
+2022-07-02T16:09:24.770+0000    done dumping stage_db2.collection2 (1000 documents)
+2022-07-02T16:09:24.774+0000    done dumping stage_db1.collection4 (1000 documents)
+2022-07-02T16:09:24.774+0000    writing stage_db2.collection1 to /usr/local/mongodb_backups/2022-07-02/stage_db2/collection1.bson.gz
+2022-07-02T16:09:24.774+0000    writing stage_db2.collection3 to /usr/local/mongodb_backups/2022-07-02/stage_db2/collection3.bson.gz
+2022-07-02T16:09:24.775+0000    done dumping application.mycollection (1000 documents)
+2022-07-02T16:09:24.781+0000    done dumping stage_db2.collection1 (1000 documents)
+2022-07-02T16:09:24.781+0000    writing stage_db3.collection2 to /usr/local/mongodb_backups/2022-07-02/stage_db3/collection2.bson.gz
+2022-07-02T16:09:24.781+0000    writing stage_db3.collection4 to /usr/local/mongodb_backups/2022-07-02/stage_db3/collection4.bson.gz
+2022-07-02T16:09:24.782+0000    done dumping stage_db2.collection4 (1000 documents)
+2022-07-02T16:09:24.782+0000    writing stage_db3.collection1 to /usr/local/mongodb_backups/2022-07-02/stage_db3/collection1.bson.gz
+2022-07-02T16:09:24.784+0000    done dumping stage_db2.collection3 (1000 documents)
+2022-07-02T16:09:24.784+0000    writing stage_db3.collection3 to /usr/local/mongodb_backups/2022-07-02/stage_db3/collection3.bson.gz
+2022-07-02T16:09:24.787+0000    done dumping stage_db3.collection1 (1000 documents)
+2022-07-02T16:09:24.787+0000    done dumping stage_db3.collection4 (1000 documents)
+2022-07-02T16:09:24.787+0000    writing stage_db4.collection3 to /usr/local/mongodb_backups/2022-07-02/stage_db4/collection3.bson.gz
+2022-07-02T16:09:24.788+0000    writing stage_db4.collection4 to /usr/local/mongodb_backups/2022-07-02/stage_db4/collection4.bson.gz
+2022-07-02T16:09:24.790+0000    done dumping stage_db3.collection2 (1000 documents)
+2022-07-02T16:09:24.791+0000    done dumping stage_db3.collection3 (1000 documents)
+2022-07-02T16:09:24.791+0000    writing stage_db4.collection1 to /usr/local/mongodb_backups/2022-07-02/stage_db4/collection1.bson.gz
+2022-07-02T16:09:24.794+0000    done dumping stage_db4.collection3 (1000 documents)
+2022-07-02T16:09:24.794+0000    writing stage_db5.collection4 to /usr/local/mongodb_backups/2022-07-02/stage_db5/collection4.bson.gz
+2022-07-02T16:09:24.794+0000    writing stage_db4.collection2 to /usr/local/mongodb_backups/2022-07-02/stage_db4/collection2.bson.gz
+2022-07-02T16:09:24.795+0000    done dumping stage_db4.collection1 (1000 documents)
+2022-07-02T16:09:24.795+0000    writing stage_db5.collection2 to /usr/local/mongodb_backups/2022-07-02/stage_db5/collection2.bson.gz
+2022-07-02T16:09:24.797+0000    done dumping stage_db5.collection4 (1000 documents)
+2022-07-02T16:09:24.798+0000    writing stage_db5.collection1 to /usr/local/mongodb_backups/2022-07-02/stage_db5/collection1.bson.gz
+2022-07-02T16:09:24.799+0000    done dumping stage_db5.collection2 (1000 documents)
+2022-07-02T16:09:24.800+0000    writing stage_db5.collection3 to /usr/local/mongodb_backups/2022-07-02/stage_db5/collection3.bson.gz
+2022-07-02T16:09:24.801+0000    done dumping stage_db4.collection4 (1000 documents)
+2022-07-02T16:09:24.805+0000    done dumping stage_db4.collection2 (1000 documents)
+2022-07-02T16:09:24.806+0000    done dumping stage_db5.collection3 (1000 documents)
+2022-07-02T16:09:24.807+0000    done dumping stage_db5.collection1 (1000 documents)
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+The script was executed successfully.
 List of backups:
-all_dbs_202207012145.gz
-```
+----------------------------------------------------------------
+/usr/local/mongodb_backups/2022-07-02/
+├── admin
+│   ├── system.users.bson.gz
+│   ├── system.users.metadata.json.gz
+│   ├── system.version.bson.gz
+│   └── system.version.metadata.json.gz
+├── application
+│   ├── mycollection.bson.gz
+│   └── mycollection.metadata.json.gz
+├── stage_db1
+│   ├── collection1.bson.gz
+│   ├── collection1.metadata.json.gz
+│   ├── collection2.bson.gz
+│   ├── collection2.metadata.json.gz
+│   ├── collection3.bson.gz
+│   ├── collection3.metadata.json.gz
+│   ├── collection4.bson.gz
+│   └── collection4.metadata.json.gz
+├── stage_db2
+│   ├── collection1.bson.gz
+│   ├── collection1.metadata.json.gz
+│   ├── collection2.bson.gz
+│   ├── collection2.metadata.json.gz
+│   ├── collection3.bson.gz
+│   ├── collection3.metadata.json.gz
+│   ├── collection4.bson.gz
+│   └── collection4.metadata.json.gz
+├── stage_db3
+│   ├── collection1.bson.gz
+│   ├── collection1.metadata.json.gz
+│   ├── collection2.bson.gz
+│   ├── collection2.metadata.json.gz
+│   ├── collection3.bson.gz
+│   ├── collection3.metadata.json.gz
+│   ├── collection4.bson.gz
+│   └── collection4.metadata.json.gz
+├── stage_db4
+│   ├── collection1.bson.gz
+│   ├── collection1.metadata.json.gz
+│   ├── collection2.bson.gz
+│   ├── collection2.metadata.json.gz
+│   ├── collection3.bson.gz
+│   ├── collection3.metadata.json.gz
+│   ├── collection4.bson.gz
+│   └── collection4.metadata.json.gz
+└── stage_db5
+    ├── collection1.bson.gz
+    ├── collection1.metadata.json.gz
+    ├── collection2.bson.gz
+    ├── collection2.metadata.json.gz
+    ├── collection3.bson.gz
+    ├── collection3.metadata.json.gz
+    ├── collection4.bson.gz
+    └── collection4.metadata.json.gz
 
-`ls -l /usr/local/mongodb_backups/all_dbs/2022-07-01/`  
-```bash
-total 428
--rw-r--r-- 1 root root 435066 Jul  1 21:45 all_dbs_202207012145.gz
+7 directories, 46 files
 ```
 
 
 ---
 
 
-### 2. Set to cron backing up a standalone db
+### 2. Set to cron backuping of standalone dbs
 
 ```bash
-ansible-playbook playbook-113.yml -u dmitriy --private-key /home/root1/.ssh/id_ed25519 -K -l host1 --extra-vars "mongo_backup_db=stage_db5"
+ansible-playbook playbook-113.yml -u dmitriy --private-key /home/root1/.ssh/id_ed25519 -K -l host1 --extra-vars 'mongo_backup_db="stage_db1 stage_db3 stage_db5"'
 ```
 
 ```yaml
@@ -153,17 +217,11 @@ changed: [host1]
 TASK [sudmed.mongodb.mongo-backup : Create MongoDB user backup] **************************************************************************************************************************************************************
 skipping: [host1]
 
-TASK [sudmed.mongodb.mongo-backup : Copy mongodb backup script for standalone db] ********************************************************************************************************************************************
-ok: [host1]
-
-TASK [sudmed.mongodb.mongo-backup : Set up on cron daily mongo backup for standalone db] *************************************************************************************************************************************
+TASK [sudmed.mongodb.mongo-backup : Copy backup script] **********************************************************************************************************************************************************************
 changed: [host1]
 
-TASK [sudmed.mongodb.mongo-backup : Copy mongodb backup script for all dbs] **************************************************************************************************************************************************
-skipping: [host1]
-
-TASK [sudmed.mongodb.mongo-backup : Set up on cron daily mongo backup] *******************************************************************************************************************************************************
-skipping: [host1]
+TASK [sudmed.mongodb.mongo-backup : Set up script on cron] *******************************************************************************************************************************************************************
+changed: [host1]
 
 TASK [sudmed.mongodb.mongo-backup : Immediately backup standalone db {{ mongo_backup_now }}] *********************************************************************************************************************************
 skipping: [host1]
@@ -172,31 +230,61 @@ TASK [sudmed.mongodb.mongo-backup : Show results of immediately backup] ********
 skipping: [host1]
 
 PLAY RECAP *******************************************************************************************************************************************************************************************************************
-host1                      : ok=4    changed=2    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0
+host1                      : ok=4    changed=3    unreachable=0    failed=0    skipped=3    rescued=0    ignored=0
 ```
 
 
-### On host1
+### Check cronjob
 `sudo crontab -e`
 ```bash
-#Ansible: Daily mongo backup stage_db5
-15 0 * * * /usr/local/bin/mongodb_backup.sh stage_db5 > /dev/null 2>&1
+#Ansible: Daily mongo backup stage_db1 stage_db3 stage_db5
+15 0 * * * /usr/local/bin/mongodb_backup.sh stage_db1 stage_db3 stage_db5 > /dev/null 2>&1
 ```
 
-`sudo /usr/local/bin/mongodb_backup.sh stage_db5`
+### Running a cron job manually and immediately
+`sudo /usr/local/bin/mongodb_backup.sh stage_db1 stage_db3 stage_db5`
 ```bash
-2022-07-01T21:37:27.712+0000    writing stage_db5.collection4 to archive 'stage_db5_202207012137.gz'
-2022-07-01T21:37:27.713+0000    writing stage_db5.collection3 to archive 'stage_db5_202207012137.gz'
-2022-07-01T21:37:27.713+0000    writing stage_db5.collection1 to archive 'stage_db5_202207012137.gz'
-2022-07-01T21:37:27.715+0000    writing stage_db5.collection2 to archive 'stage_db5_202207012137.gz'
-2022-07-01T21:37:27.724+0000    done dumping stage_db5.collection1 (1000 documents)
-2022-07-01T21:37:27.728+0000    done dumping stage_db5.collection3 (1000 documents)
-2022-07-01T21:37:27.728+0000    done dumping stage_db5.collection4 (1000 documents)
-2022-07-01T21:37:27.728+0000    done dumping stage_db5.collection2 (1000 documents)
-DB stage_db5 was backed up to: /usr/local/mongodb_backups/stage_db5/2022-07-01/
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+The backup script for MongoDB
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Starting backup for databases: stage_db1 stage_db3 stage_db5
+2022-07-02T16:18:30.664+0000    writing stage_db1.collection1 to archive 'stage_db1.gz'
+2022-07-02T16:18:30.665+0000    writing stage_db1.collection3 to archive 'stage_db1.gz'
+2022-07-02T16:18:30.676+0000    writing stage_db1.collection2 to archive 'stage_db1.gz'
+2022-07-02T16:18:30.676+0000    writing stage_db1.collection4 to archive 'stage_db1.gz'
+2022-07-02T16:18:30.681+0000    done dumping stage_db1.collection3 (1000 documents)
+2022-07-02T16:18:30.688+0000    done dumping stage_db1.collection4 (1000 documents)
+2022-07-02T16:18:30.688+0000    done dumping stage_db1.collection2 (1000 documents)
+2022-07-02T16:18:30.689+0000    done dumping stage_db1.collection1 (1000 documents)
+DB stage_db1 was successfully archived in: /usr/local/mongodb_backups/2022-07-02/
+2022-07-02T16:18:30.706+0000    writing stage_db3.collection4 to archive 'stage_db3.gz'
+2022-07-02T16:18:30.706+0000    writing stage_db3.collection1 to archive 'stage_db3.gz'
+2022-07-02T16:18:30.708+0000    writing stage_db3.collection3 to archive 'stage_db3.gz'
+2022-07-02T16:18:30.710+0000    writing stage_db3.collection2 to archive 'stage_db3.gz'
+2022-07-02T16:18:30.715+0000    done dumping stage_db3.collection4 (1000 documents)
+2022-07-02T16:18:30.716+0000    done dumping stage_db3.collection1 (1000 documents)
+2022-07-02T16:18:30.721+0000    done dumping stage_db3.collection3 (1000 documents)
+2022-07-02T16:18:30.721+0000    done dumping stage_db3.collection2 (1000 documents)
+DB stage_db3 was successfully archived in: /usr/local/mongodb_backups/2022-07-02/
+2022-07-02T16:18:30.737+0000    writing stage_db5.collection2 to archive 'stage_db5.gz'
+2022-07-02T16:18:30.737+0000    writing stage_db5.collection1 to archive 'stage_db5.gz'
+2022-07-02T16:18:30.740+0000    writing stage_db5.collection3 to archive 'stage_db5.gz'
+2022-07-02T16:18:30.740+0000    writing stage_db5.collection4 to archive 'stage_db5.gz'
+2022-07-02T16:18:30.744+0000    done dumping stage_db5.collection2 (1000 documents)
+2022-07-02T16:18:30.754+0000    done dumping stage_db5.collection1 (1000 documents)
+2022-07-02T16:18:30.754+0000    done dumping stage_db5.collection3 (1000 documents)
+2022-07-02T16:18:30.754+0000    done dumping stage_db5.collection4 (1000 documents)
+DB stage_db5 was successfully archived in: /usr/local/mongodb_backups/2022-07-02/
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+The script was executed successfully.
 List of backups:
-stage_db5_202207012137.gz
-stage_db5_202207012136.gz
+----------------------------------------------------------------
+/usr/local/mongodb_backups/2022-07-02/
+├── stage_db1.gz
+├── stage_db3.gz
+└── stage_db5.gz
+
+0 directories, 3 files
 ```
 
 
@@ -223,16 +311,10 @@ changed: [host1]
 TASK [sudmed.mongodb.mongo-backup : Create MongoDB user backup] **************************************************************************************************************************************************************
 skipping: [host1]
 
-TASK [sudmed.mongodb.mongo-backup : Copy mongodb backup script for standalone db] ********************************************************************************************************************************************
+TASK [sudmed.mongodb.mongo-backup : Copy backup script] **********************************************************************************************************************************************************************
 skipping: [host1]
 
-TASK [sudmed.mongodb.mongo-backup : Set up on cron daily mongo backup for standalone db] *************************************************************************************************************************************
-skipping: [host1]
-
-TASK [sudmed.mongodb.mongo-backup : Copy mongodb backup script for all dbs] **************************************************************************************************************************************************
-skipping: [host1]
-
-TASK [sudmed.mongodb.mongo-backup : Set up on cron daily mongo backup] *******************************************************************************************************************************************************
+TASK [sudmed.mongodb.mongo-backup : Set up script on cron] *******************************************************************************************************************************************************************
 skipping: [host1]
 
 TASK [sudmed.mongodb.mongo-backup : Immediately backup standalone db stage_db2] **********************************************************************************************************************************************
@@ -241,137 +323,63 @@ changed: [host1]
 TASK [sudmed.mongodb.mongo-backup : Show results of immediately backup] ******************************************************************************************************************************************************
 ok: [host1] => {
     "backup_result.stdout_lines": [
-        "DB stage_db2 was backed up to: /usr/local/mongodb_backups/stage_db2/",
+        "DB stage_db2 was backuped to: /usr/local/mongodb_backups/",
         "-e List of backups:",
-        "stage_db2_202207012056.gz"
+        "stage_db2_202207021619.gz"
     ]
 }
 
 PLAY RECAP *******************************************************************************************************************************************************************************************************************
-host1                      : ok=4    changed=2    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0
+host1                      : ok=4    changed=2    unreachable=0    failed=0    skipped=3    rescued=0    ignored=0
 ```
 
-### On host1
-`ls -l /usr/local/mongodb_backups/stage_db2/`
+
+---
+
+
+### 4. Drop and Restore from backup
+
 ```bash
-total 84
--rw-r--r-- 1 root root 82916 Jul  1 20:56 stage_db2_202207012056.gz
+mongosh --port 28000 admin -u dbadmin -p
+```
+```bash
+admin> use stage_db2
+switched to db stage_db2
+stage_db2> db.dropDatabase()
+{ ok: 1, dropped: 'stage_db2' }
+stage_db2> show dbs
+admin        180.00 KiB
+application   72.00 KiB
+config       108.00 KiB
+local         72.00 KiB
+stage_db1    316.00 KiB
+stage_db3    316.00 KiB
+stage_db4    320.00 KiB
+stage_db5    316.00 KiB
+stage_db2> exit
 ```
 
-
-### 4. Restore from backup
-
-`mongorestore --port=28000 -u=backup --gzip --drop --archive=all_dbs_202207012145.gz`
+`mongorestore --port=28000 -u=backup --gzip --drop --archive=stage_db2_202207021619.gz`
 
 ```bash
 Enter password:
 
-2022-07-01T21:53:57.522+0000    preparing collections to restore from
-2022-07-01T21:53:57.528+0000    reading metadata for stage_db1.collection4 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.528+0000    reading metadata for stage_db3.collection4 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.528+0000    reading metadata for stage_db4.collection4 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.528+0000    reading metadata for stage_db5.collection2 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.528+0000    reading metadata for stage_db2.collection2 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.528+0000    reading metadata for stage_db3.collection1 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.528+0000    reading metadata for stage_db4.collection2 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.528+0000    reading metadata for stage_db4.collection3 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.528+0000    reading metadata for application.mycollection from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.528+0000    reading metadata for stage_db1.collection3 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.528+0000    reading metadata for stage_db1.collection2 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.528+0000    reading metadata for stage_db3.collection3 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.528+0000    reading metadata for stage_db4.collection1 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.528+0000    reading metadata for stage_db1.collection1 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.528+0000    reading metadata for stage_db2.collection4 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.528+0000    reading metadata for stage_db2.collection3 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.529+0000    reading metadata for stage_db2.collection1 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.529+0000    reading metadata for stage_db3.collection2 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.529+0000    reading metadata for stage_db5.collection4 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.529+0000    reading metadata for stage_db5.collection1 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.529+0000    reading metadata for stage_db5.collection3 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.532+0000    dropping collection application.mycollection before restoring
-2022-07-01T21:53:57.542+0000    restoring application.mycollection from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.552+0000    finished restoring application.mycollection (1000 documents, 0 failures)
-2022-07-01T21:53:57.553+0000    dropping collection stage_db1.collection2 before restoring
-2022-07-01T21:53:57.564+0000    restoring stage_db1.collection2 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.577+0000    finished restoring stage_db1.collection2 (1000 documents, 0 failures)
-2022-07-01T21:53:57.577+0000    dropping collection stage_db1.collection3 before restoring
-2022-07-01T21:53:57.588+0000    restoring stage_db1.collection3 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.599+0000    finished restoring stage_db1.collection3 (1000 documents, 0 failures)
-2022-07-01T21:53:57.599+0000    dropping collection stage_db1.collection1 before restoring
-2022-07-01T21:53:57.611+0000    restoring stage_db1.collection1 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.623+0000    finished restoring stage_db1.collection1 (1000 documents, 0 failures)
-2022-07-01T21:53:57.623+0000    dropping collection stage_db1.collection4 before restoring
-2022-07-01T21:53:57.636+0000    restoring stage_db1.collection4 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.649+0000    finished restoring stage_db1.collection4 (1000 documents, 0 failures)
-2022-07-01T21:53:57.649+0000    dropping collection stage_db2.collection3 before restoring
-2022-07-01T21:53:57.658+0000    restoring stage_db2.collection3 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.669+0000    finished restoring stage_db2.collection3 (1000 documents, 0 failures)
-2022-07-01T21:53:57.669+0000    dropping collection stage_db2.collection1 before restoring
-2022-07-01T21:53:57.677+0000    restoring stage_db2.collection1 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.681+0000    dropping collection stage_db3.collection4 before restoring
-2022-07-01T21:53:57.690+0000    restoring stage_db3.collection4 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.692+0000    dropping collection stage_db2.collection2 before restoring
-2022-07-01T21:53:57.703+0000    restoring stage_db2.collection2 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.706+0000    finished restoring stage_db3.collection4 (1000 documents, 0 failures)
-2022-07-01T21:53:57.706+0000    finished restoring stage_db2.collection1 (1000 documents, 0 failures)
-2022-07-01T21:53:57.714+0000    finished restoring stage_db2.collection2 (1000 documents, 0 failures)
-2022-07-01T21:53:57.714+0000    dropping collection stage_db3.collection3 before restoring
-2022-07-01T21:53:57.722+0000    restoring stage_db3.collection3 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.734+0000    finished restoring stage_db3.collection3 (1000 documents, 0 failures)
-2022-07-01T21:53:57.735+0000    dropping collection stage_db2.collection4 before restoring
-2022-07-01T21:53:57.743+0000    restoring stage_db2.collection4 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.747+0000    dropping collection stage_db3.collection2 before restoring
-2022-07-01T21:53:57.759+0000    restoring stage_db3.collection2 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.760+0000    finished restoring stage_db2.collection4 (1000 documents, 0 failures)
-2022-07-01T21:53:57.769+0000    finished restoring stage_db3.collection2 (1000 documents, 0 failures)
-2022-07-01T21:53:57.770+0000    dropping collection stage_db4.collection2 before restoring
-2022-07-01T21:53:57.779+0000    restoring stage_db4.collection2 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.790+0000    finished restoring stage_db4.collection2 (1000 documents, 0 failures)
-2022-07-01T21:53:57.790+0000    dropping collection stage_db3.collection1 before restoring
-2022-07-01T21:53:57.798+0000    restoring stage_db3.collection1 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.800+0000    dropping collection stage_db4.collection1 before restoring
-2022-07-01T21:53:57.813+0000    restoring stage_db4.collection1 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.815+0000    finished restoring stage_db3.collection1 (1000 documents, 0 failures)
-2022-07-01T21:53:57.816+0000    dropping collection stage_db4.collection4 before restoring
-2022-07-01T21:53:57.825+0000    restoring stage_db4.collection4 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.836+0000    finished restoring stage_db4.collection4 (1000 documents, 0 failures)
-2022-07-01T21:53:57.836+0000    dropping collection stage_db4.collection3 before restoring
-2022-07-01T21:53:57.845+0000    restoring stage_db4.collection3 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.848+0000    finished restoring stage_db4.collection1 (1000 documents, 0 failures)
-2022-07-01T21:53:57.856+0000    finished restoring stage_db4.collection3 (1000 documents, 0 failures)
-2022-07-01T21:53:57.857+0000    dropping collection stage_db5.collection2 before restoring
-2022-07-01T21:53:57.865+0000    restoring stage_db5.collection2 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.868+0000    dropping collection stage_db5.collection4 before restoring
-2022-07-01T21:53:57.879+0000    restoring stage_db5.collection4 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.882+0000    finished restoring stage_db5.collection2 (1000 documents, 0 failures)
-2022-07-01T21:53:57.882+0000    dropping collection stage_db5.collection1 before restoring
-2022-07-01T21:53:57.908+0000    restoring stage_db5.collection1 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.911+0000    finished restoring stage_db5.collection4 (1000 documents, 0 failures)
-2022-07-01T21:53:57.921+0000    finished restoring stage_db5.collection1 (1000 documents, 0 failures)
-2022-07-01T21:53:57.921+0000    dropping collection stage_db5.collection3 before restoring
-2022-07-01T21:53:57.930+0000    restoring stage_db5.collection3 from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.943+0000    finished restoring stage_db5.collection3 (1000 documents, 0 failures)
-2022-07-01T21:53:57.943+0000    restoring users from archive 'all_dbs_202207012145.gz'
-2022-07-01T21:53:57.958+0000    no indexes to restore for collection stage_db3.collection2
-2022-07-01T21:53:57.958+0000    no indexes to restore for collection stage_db4.collection4
-2022-07-01T21:53:57.958+0000    no indexes to restore for collection stage_db4.collection2
-2022-07-01T21:53:57.958+0000    no indexes to restore for collection stage_db4.collection3
-2022-07-01T21:53:57.958+0000    no indexes to restore for collection stage_db4.collection1
-2022-07-01T21:53:57.959+0000    no indexes to restore for collection stage_db5.collection4
-2022-07-01T21:53:57.959+0000    no indexes to restore for collection stage_db5.collection1
-2022-07-01T21:53:57.959+0000    no indexes to restore for collection stage_db5.collection3
-2022-07-01T21:53:57.959+0000    no indexes to restore for collection stage_db5.collection2
-2022-07-01T21:53:57.959+0000    no indexes to restore for collection stage_db2.collection3
-2022-07-01T21:53:57.959+0000    no indexes to restore for collection stage_db2.collection1
-2022-07-01T21:53:57.959+0000    no indexes to restore for collection stage_db2.collection2
-2022-07-01T21:53:57.959+0000    no indexes to restore for collection stage_db2.collection4
-2022-07-01T21:53:57.959+0000    no indexes to restore for collection application.mycollection
-2022-07-01T21:53:57.959+0000    no indexes to restore for collection stage_db1.collection3
-2022-07-01T21:53:57.959+0000    no indexes to restore for collection stage_db3.collection4
-2022-07-01T21:53:57.959+0000    no indexes to restore for collection stage_db1.collection1
-2022-07-01T21:53:57.959+0000    no indexes to restore for collection stage_db1.collection4
-2022-07-01T21:53:57.959+0000    no indexes to restore for collection stage_db3.collection1
-2022-07-01T21:53:57.959+0000    no indexes to restore for collection stage_db3.collection3
-2022-07-01T21:53:57.959+0000    no indexes to restore for collection stage_db1.collection2
-2022-07-01T21:53:57.959+0000    21000 document(s) restored successfully. 0 document(s) failed to restore.
+2022-07-02T16:27:56.120+0000    preparing collections to restore from
+2022-07-02T16:27:56.125+0000    reading metadata for stage_db2.collection2 from archive 'stage_db2_202207021619.gz'
+2022-07-02T16:27:56.125+0000    reading metadata for stage_db2.collection4 from archive 'stage_db2_202207021619.gz'
+2022-07-02T16:27:56.125+0000    reading metadata for stage_db2.collection3 from archive 'stage_db2_202207021619.gz'
+2022-07-02T16:27:56.125+0000    reading metadata for stage_db2.collection1 from archive 'stage_db2_202207021619.gz'
+2022-07-02T16:27:56.138+0000    restoring stage_db2.collection3 from archive 'stage_db2_202207021619.gz'
+2022-07-02T16:27:56.150+0000    restoring stage_db2.collection1 from archive 'stage_db2_202207021619.gz'
+2022-07-02T16:27:56.168+0000    restoring stage_db2.collection2 from archive 'stage_db2_202207021619.gz'
+2022-07-02T16:27:56.170+0000    finished restoring stage_db2.collection1 (1000 documents, 0 failures)
+2022-07-02T16:27:56.170+0000    finished restoring stage_db2.collection3 (1000 documents, 0 failures)
+2022-07-02T16:27:56.179+0000    finished restoring stage_db2.collection2 (1000 documents, 0 failures)
+2022-07-02T16:27:56.207+0000    restoring stage_db2.collection4 from archive 'stage_db2_202207021619.gz'
+2022-07-02T16:27:56.218+0000    finished restoring stage_db2.collection4 (1000 documents, 0 failures)
+2022-07-02T16:27:56.218+0000    no indexes to restore for collection stage_db2.collection3
+2022-07-02T16:27:56.218+0000    no indexes to restore for collection stage_db2.collection1
+2022-07-02T16:27:56.218+0000    no indexes to restore for collection stage_db2.collection2
+2022-07-02T16:27:56.218+0000    no indexes to restore for collection stage_db2.collection4
+2022-07-02T16:27:56.218+0000    4000 document(s) restored successfully. 0 document(s) failed to restore.
 ```

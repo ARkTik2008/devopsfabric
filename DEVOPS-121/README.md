@@ -1,5 +1,7 @@
 # DEVOPS-121 Docker intro
 
+[docker_starter.sh](/DEVOPS-121/docker_starter.sh) - script that creates 2 local docker volumes, copies nginx 'default.conf' and simple static site into appropriate directories, and starts docker container with specified parameters.
+
 ## Task validation
 
 ## On VM with running docker container

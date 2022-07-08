@@ -1,7 +1,9 @@
 #!/bin/bash
 #
-# This script creates 2 local volumes with nginx 'default.conf' and with sinple
-#   static site. Then, it copies
+# This script creates 2 local docker volumes. Then, it copies nginx
+#   'default.conf' and simple static site into appropriate directories.
+#   Finaly, the script starts docker container with specified parameters.
+#
 
 set -e
 

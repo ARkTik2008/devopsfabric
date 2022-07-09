@@ -1,0 +1,11 @@
+---
+# defaults file for mongo-backup
+
+mongo_host: "localhost"
+mongo_port: "28000"
+mongo_backup_path: "/usr/local/mongodb_backups"
+mongo_backup_db: "ALL"
+# mongo_backup_db: "stage_db1 stage_db2 stage_db4"
+mongo_backup_hour: "0"
+mongo_backup_minute: "15"
+backup_retain_days: "30"

@@ -1,0 +1,14 @@
+---
+# This playbook makes backup of MongoDB databases.
+
+- name: Deploy MongoDB
+  hosts: all
+  gather_facts: yes
+  become: yes
+  
+  collections:
+  - sudmed.mongodb
+
+  tasks:
+    - import_role:
+        name: mongo-backup

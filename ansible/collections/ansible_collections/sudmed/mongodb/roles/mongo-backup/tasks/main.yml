@@ -1,0 +1,58 @@
+---
+# tasks file for mongo-backup
+
+- name: Check if backup user exists
+  command: |
+    mongosh --port 28000 admin -u backup -p "{{ passwd_mongo_backup }}" --eval 'db.runCommand({ connectionStatus : 1 })'
+  register: backup_exist
+  ignore_errors: True
+
+- name: Create MongoDB user backup
+  shell: |
+    mongosh --port 28000 admin -u admin -p "{{ passwd_mongo_admin }}" <<EOF
+    db.createUser({ user: "backup", pwd: "{{ passwd_mongo_backup }}", roles: [ "readAnyDatabase", "backup", "restore" ] })
+    exit
+    EOF
+  when: backup_exist is failed
+
+# set backup to cron
+- name: automate backups with cron
+  block:
+  - name: Copy backup script
+    template:
+      src: "mongodb_backup.sh"
+      dest: "/usr/local/bin/mongodb_backup.sh"
+      mode: 0755
+
+  - name: Set up script on cron
+    cron:
+      name: "Daily mongo backup {{ mongo_backup_db }}"
+      minute: "{{ mongo_backup_minute }}"
+      hour: "{{ mongo_backup_hour }}"
+      job: "/usr/local/bin/mongodb_backup.sh {{ mongo_backup_db }} > /dev/null 2>&1"
+  when: mongo_backup_now is undefined
+
+# immediately backup standalone db defined in extra-vars as var 'mongo_backup_now'
+- name: Immediately backup
+  block:
+  - name: Immediately backup standalone db {{ mongo_backup_now }}
+    shell: |
+      backup_dir="{{mongo_backup_path}}/${date}"
+      mkdir -p "${backup_dir}"
+      cd "${backup_dir}"
+      mongodump \
+        --host="{{ mongo_host }}" \
+        --port="{{ mongo_port }}" \
+        --authenticationDatabase=admin \
+        --username=backup \
+        --password="{{ passwd_mongo_backup }}" \
+        --db="{{ mongo_backup_now }}" \
+        --archive="{{ mongo_backup_now }}_$(date +%Y%m%d%H%M).gz" --gzip
+      echo "DB "{{ mongo_backup_now }}" was backuped to: "${backup_dir}""
+      echo -e "List of backups:\n$(ls -t)"
+    register: backup_result
+  
+  - name: Show results of immediately backup
+    debug:
+      var: backup_result.stdout_lines
+  when: mongo_backup_now is defined
